@@ -201,15 +201,44 @@ export const SYMBOL_TO_COINGECKO_ID = Object.fromEntries(
 
 // Price detection patterns
 export const PRICE_PATTERNS = [
+  // Basic currency symbols
   /\$\s*[\d,]+\.?\d*/g, // $123.45
   /USD\s*[\d,]+\.?\d*/g, // USD 123.45
+  /€\s*[\d,]+(?:\.\d{3})*(?:,\d+)?/g, // €1.234,56 (European format)
   /€\s*[\d,]+\.?\d*/g, // €123.45
   /EUR\s*[\d,]+\.?\d*/g, // EUR 123.45
   /£\s*[\d,]+\.?\d*/g, // £123.45
   /GBP\s*[\d,]+\.?\d*/g, // GBP 123.45
   /¥\s*[\d,]+\.?\d*/g, // ¥123.45
   /JPY\s*[\d,]+\.?\d*/g, // JPY 123.45
-  /\b[\d,]+\.?\d*\s*(USD|EUR|GBP|JPY|CAD|AUD|CHF|CNY|INR|KRW|MXN|BRL|RUB|SGD|HKD|NZD|SEK|NOK|DKK|PLN)\b/gi,
+
+  // Canadian and Australian dollars
+  /C\$\s*[\d,]+\.?\d*/g, // C$123.45
+  /A\$\s*[\d,]+\.?\d*/g, // A$123.45
+
+  // Indian Rupee
+  /₹\s*[\d,]+\.?\d*/g, // ₹99,999
+  /₹\s*[\d,]+(?:,\d{2})+(?:\.\d+)?/g, // ₹1,23,456 (Indian format)
+  /INR\s*[\d,]+(?:,\d{2})+(?:\.\d+)?/g, // INR 1,23,456
+  /INR\s*[\d,]+\.?\d*/g, // INR 123.45
+
+  // Swiss Franc
+  /CHF\s*[\d,]+\.?\d*/g, // CHF 789.00
+
+  // Scandinavian currencies
+  /kr\s*[\d,]+(?:,\d+)?/g, // kr 123,45 (comma as decimal)
+  /kr\s*[\d,]+\.?\d*/g, // kr 123.45
+
+  // Cryptocurrencies
+  /₿\s*[\d,]+\.?\d*/g, // ₿0.00123456
+  /\b(?:BTC|ETH|BNB|XRP|SOL|DOGE|TRX|ADA|BCH|XLM|LTC|DOT|XMR|PEPE|AAVE|PI|CRO|TRUMP|VET|RENDER|WLD)\s+[\d,]+\.?\d*/gi, // BTC 0.001
+  /\b[\d,]+\.?\d*\s+(?:BTC|ETH|BNB|XRP|SOL|DOGE|TRX|ADA|BCH|XLM|LTC|DOT|XMR|PEPE|AAVE|PI|CRO|TRUMP|VET|RENDER|WLD)\b/gi, // 0.001 BTC
+
+  // General fiat currency pattern (code before number)
+  /\b(?:USD|EUR|GBP|JPY|CAD|AUD|CHF|CNY|INR|KRW|MXN|BRL|RUB|SGD|HKD|NZD|SEK|NOK|DKK|PLN|TRY|ZAR|ILS|CZK|HUF|RON|BGN|IDR|PHP|MYR|ISK)\s+[\d,]+\.?\d*/gi,
+
+  // General fiat currency pattern (number before code)
+  /\b[\d,]+\.?\d*\s+(?:USD|EUR|GBP|JPY|CAD|AUD|CHF|CNY|INR|KRW|MXN|BRL|RUB|SGD|HKD|NZD|SEK|NOK|DKK|PLN|TRY|ZAR|ILS|CZK|HUF|RON|BGN|IDR|PHP|MYR|ISK)\b/gi,
 ];
 
 // Debug flag - set to false in production

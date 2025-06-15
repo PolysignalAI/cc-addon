@@ -737,6 +737,9 @@ if (
       // Scan for split prices (like Amazon's structure)
       processedCount += this.scanSplitPrices();
 
+      // Scan for prices with superscript (like $99<sup>99</sup>)
+      processedCount += this.scanSuperscriptPrices();
+
       const walker = document.createTreeWalker(
         document.body,
         NodeFilter.SHOW_TEXT,
@@ -969,12 +972,12 @@ if (
 
           // Clean up the price text
           fullPriceText = fullPriceText.replace(/,/g, "").replace(/\.+/g, ".");
-          
+
           // Ensure we actually have numeric content
           if (!fullPriceText || !fullPriceText.match(/\d/)) {
             return; // Skip this element - no numeric content
           }
-          
+
           const price = parseFloat(fullPriceText);
 
           console.log(
@@ -1023,6 +1026,99 @@ if (
               // Mark container as processed
               this.processedNodes.add(element);
               processedCount++;
+            }
+          }
+        }
+      });
+
+      return processedCount;
+    }
+
+    scanSuperscriptPrices() {
+      let processedCount = 0;
+
+      // Find all elements that might have superscript prices
+      const potentialElements = document.querySelectorAll("*");
+
+      potentialElements.forEach((element) => {
+        // Skip if already processed
+        if (
+          this.processedNodes.has(element) ||
+          element.closest(".price-wrapper")
+        ) {
+          return;
+        }
+
+        // Check if element has text content followed by a sup element
+        const children = Array.from(element.childNodes);
+
+        for (let i = 0; i < children.length - 1; i++) {
+          const currentNode = children[i];
+          const nextNode = children[i + 1];
+
+          // Look for pattern: text node with currency + sup element
+          if (
+            currentNode.nodeType === Node.TEXT_NODE &&
+            nextNode.nodeType === Node.ELEMENT_NODE &&
+            nextNode.tagName === "SUP"
+          ) {
+            const mainText = currentNode.textContent;
+            const supText = nextNode.textContent;
+
+            // Check if main text has currency symbol and number
+            const currencyMatch = mainText.match(
+              /([€$£¥₹C\$A\$]|USD|EUR|GBP)\s*(\d+)/
+            );
+            if (currencyMatch && supText.match(/^\d+$/)) {
+              const currency = this.extractCurrency(mainText);
+              const fullPrice = parseFloat(currencyMatch[2] + "." + supText);
+
+              if (currency && fullPrice > 0) {
+                // Create wrapper for the price
+                const wrapper = document.createElement("span");
+                wrapper.className = "price-wrapper";
+
+                // Clone the original structure
+                const mainPart = document.createTextNode(mainText);
+                const supPart = document.createElement("sup");
+                supPart.textContent = supText;
+
+                wrapper.appendChild(mainPart);
+                wrapper.appendChild(supPart);
+
+                // Create tooltip
+                const tooltip = this.createTooltip(fullPrice, currency);
+                if (tooltip) {
+                  // Apply appearance settings
+                  this.applyAppearanceToElement(wrapper);
+                  wrapper._tooltip = tooltip;
+
+                  // Add hover listeners
+                  wrapper.addEventListener("mouseenter", (e) => {
+                    e.stopPropagation();
+                    if (tooltip._hideTimeout) {
+                      clearTimeout(tooltip._hideTimeout);
+                      delete tooltip._hideTimeout;
+                    }
+                    this.showPortalTooltip(wrapper, tooltip);
+                  });
+
+                  wrapper.addEventListener("mouseleave", (e) => {
+                    e.stopPropagation();
+                    this.hidePortalTooltip(tooltip);
+                  });
+
+                  // Replace original nodes with wrapper
+                  element.insertBefore(wrapper, currentNode);
+                  element.removeChild(currentNode);
+                  element.removeChild(nextNode);
+
+                  // Mark as processed
+                  this.processedNodes.add(wrapper);
+                  this.processedNodes.add(element);
+                  processedCount++;
+                }
+              }
             }
           }
         }
@@ -1341,18 +1437,43 @@ if (
 
     extractPrice(priceText) {
       // Remove currency symbols and extract numeric value
-      const cleanedText = priceText.replace(/[^0-9.,]/g, "");
-      
+      let cleanedText = priceText.replace(/[^0-9.,]/g, "");
+
       // If no digits found, return null
       if (!cleanedText || !cleanedText.match(/\d/)) {
         return null;
       }
-      
-      const normalizedText = cleanedText.replace(/,/g, "");
+
+      // Determine if this uses European format (comma as decimal separator)
+      // European format: 1.234,56 (dots for thousands, comma for decimal)
+      // US format: 1,234.56 (commas for thousands, dot for decimal)
+
+      const dotCount = (cleanedText.match(/\./g) || []).length;
+      const commaCount = (cleanedText.match(/,/g) || []).length;
+      const lastDotIndex = cleanedText.lastIndexOf(".");
+      const lastCommaIndex = cleanedText.lastIndexOf(",");
+
+      let normalizedText;
+
+      if (lastCommaIndex > lastDotIndex) {
+        // Comma appears after dot, likely European format (e.g., 1.234,56)
+        normalizedText = cleanedText.replace(/\./g, "").replace(",", ".");
+      } else if (
+        commaCount > 0 &&
+        dotCount === 0 &&
+        cleanedText.match(/,\d{2}$/)
+      ) {
+        // Only commas, and ends with ,XX - likely European format (e.g., 123,45)
+        normalizedText = cleanedText.replace(",", ".");
+      } else {
+        // Standard format or ambiguous - treat commas as thousands separators
+        normalizedText = cleanedText.replace(/,/g, "");
+      }
+
       const price = parseFloat(normalizedText);
-      
+
       // Return null for invalid prices
-      return (price && !isNaN(price) && price > 0) ? price : null;
+      return price && !isNaN(price) && price > 0 ? price : null;
     }
 
     // Helper function to get currencies that use a specific symbol
@@ -1377,6 +1498,25 @@ if (
     }
 
     extractCurrency(priceText, textNode = null) {
+      // Check for specific multi-character currency symbols first
+      if (priceText.includes("C$")) return "CAD";
+      if (priceText.includes("A$")) return "AUD";
+      if (priceText.includes("NZ$")) return "NZD";
+      if (priceText.includes("S$")) return "SGD";
+      if (priceText.includes("HK$")) return "HKD";
+      if (priceText.includes("US$")) return "USD";
+
+      // Check for Bitcoin symbol
+      if (priceText.includes("₿")) return "BTC";
+
+      // Check for cryptocurrency codes
+      const cryptoMatch = priceText.match(
+        /\b(BTC|ETH|BNB|XRP|SOL|DOGE|TRX|ADA|BCH|XLM|LTC|DOT|XMR|PEPE|AAVE|PI|CRO|TRUMP|VET|RENDER|WLD)\b/i
+      );
+      if (cryptoMatch) {
+        return cryptoMatch[1].toUpperCase();
+      }
+
       // First check if the price text itself contains clear currency indicators
       const directCurrencyMatch = priceText.match(
         /\b(AUD|USD|EUR|GBP|CAD|NZD|SGD|HKD|CHF|JPY|CNY|INR|KRW|MXN|BRL|ZAR|NOK|SEK|DKK|PLN|CZK|HUF|RON|BGN|TRY|ILS|THB|MYR|IDR|PHP|ISK)\b/i
