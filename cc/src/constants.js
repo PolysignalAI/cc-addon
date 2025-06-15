@@ -211,10 +211,29 @@ export const PRICE_PATTERNS = [
   /GBP\s*[\d,]+\.?\d*/g, // GBP 123.45
   /¥\s*[\d,]+\.?\d*/g, // ¥123.45
   /JPY\s*[\d,]+\.?\d*/g, // JPY 123.45
+  /JP\s*¥\s*[\d,]+\.?\d*/g, // JP¥ 123.45 or JP ¥123.45
+  /JPY\s*¥\s*[\d,]+\.?\d*/g, // JPY¥ 123.45
+  /CN\s*¥\s*[\d,]+\.?\d*/g, // CN¥ 123.45 or CN ¥123.45
+  /CNY\s*¥\s*[\d,]+\.?\d*/g, // CNY¥ 123.45
+  /RMB\s*[\d,]+\.?\d*/g, // RMB 123.45 (alternative for CNY)
+  /元\s*[\d,]+\.?\d*/g, // 元123.45 (Chinese character for yuan)
 
-  // Canadian and Australian dollars
+  // Canadian and Australian dollars (specific patterns)
   /C\$\s*[\d,]+\.?\d*/g, // C$123.45
+  /CA\s*\$\s*[\d,]+\.?\d*/g, // CA $123.45 or CA$123.45
+  /CAD\s*\$\s*[\d,]+\.?\d*/g, // CAD $123.45 or CAD$123.45
   /A\$\s*[\d,]+\.?\d*/g, // A$123.45
+  /AU\s*\$\s*[\d,]+\.?\d*/g, // AU $123.45 or AU$123.45
+  /AUD\s*\$\s*[\d,]+\.?\d*/g, // AUD $123.45 or AUD$123.45
+
+  // Other dollar currencies
+  /NZ\s*\$\s*[\d,]+\.?\d*/g, // NZ $123.45 or NZ$123.45
+  /NZD\s*\$\s*[\d,]+\.?\d*/g, // NZD $123.45 or NZD$123.45
+  /S\$\s*[\d,]+\.?\d*/g, // S$123.45 (Singapore)
+  /SG\s*\$\s*[\d,]+\.?\d*/g, // SG $123.45 or SG$123.45
+  /SGD\s*\$\s*[\d,]+\.?\d*/g, // SGD $123.45 or SGD$123.45
+  /HK\s*\$\s*[\d,]+\.?\d*/g, // HK $123.45 or HK$123.45
+  /HKD\s*\$\s*[\d,]+\.?\d*/g, // HKD $123.45 or HKD$123.45
 
   // Indian Rupee
   /₹\s*[\d,]+\.?\d*/g, // ₹99,999
@@ -225,9 +244,18 @@ export const PRICE_PATTERNS = [
   // Swiss Franc
   /CHF\s*[\d,]+\.?\d*/g, // CHF 789.00
 
-  // Scandinavian currencies
+  // Scandinavian currencies (kr is shared by SEK, NOK, DKK, ISK)
   /kr\s*[\d,]+(?:,\d+)?/g, // kr 123,45 (comma as decimal)
   /kr\s*[\d,]+\.?\d*/g, // kr 123.45
+  /SEK\s*[\d,]+\.?\d*/g, // SEK 123.45
+  /NOK\s*[\d,]+\.?\d*/g, // NOK 123.45
+  /DKK\s*[\d,]+\.?\d*/g, // DKK 123.45
+  /ISK\s*[\d,]+\.?\d*/g, // ISK 123.45
+  /SEK\s*kr\s*[\d,]+\.?\d*/g, // SEKkr 123.45 or SEK kr 123.45
+  /NOK\s*kr\s*[\d,]+\.?\d*/g, // NOKkr 123.45 or NOK kr 123.45
+  /DKK\s*kr\s*[\d,]+\.?\d*/g, // DKKkr 123.45 or DKK kr 123.45
+  /ISK\s*kr\s*[\d,]+\.?\d*/g, // ISKkr 123.45 or ISK kr 123.45
+  /[\d,]+\.?\d*\s*kr/g, // 123.45kr (amount before kr)
 
   // Cryptocurrencies
   /₿\s*[\d,]+\.?\d*/g, // ₿0.00123456
@@ -239,10 +267,13 @@ export const PRICE_PATTERNS = [
 
   // General fiat currency pattern (number before code)
   /\b[\d,]+\.?\d*\s+(?:USD|EUR|GBP|JPY|CAD|AUD|CHF|CNY|INR|KRW|MXN|BRL|RUB|SGD|HKD|NZD|SEK|NOK|DKK|PLN|TRY|ZAR|ILS|CZK|HUF|RON|BGN|IDR|PHP|MYR|ISK)\b/gi,
+
+  // Dollar symbol with currency code pattern ($123 USD, $123 HKD, etc.)
+  /\$\s*[\d,]+\.?\d*\s+(?:USD|CAD|AUD|NZD|SGD|HKD)\b/gi,
 ];
 
 // Debug flag - set to false in production
-export const DEBUG = true;
+export const DEBUG = false;
 
 // Debug wrapper functions
 export const debug = {

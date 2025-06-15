@@ -871,8 +871,13 @@ if (
           const child = element.children[i];
           const text = child.textContent.trim();
 
-          // Check if this child contains a currency symbol
-          if (!symbolElement && text.match(/^[$€£¥₹₽₺₩₦₵₨₫₱₡₸₮₴₪]+$/)) {
+          // Check if this child contains a currency symbol (including compound like A$, C$)
+          if (
+            !symbolElement &&
+            text.match(
+              /^(A\$|AU\$|C\$|CA\$|NZ\$|S\$|HK\$|US\$|[$€£¥₹₽₺₩₦₵₨₫₱₡₸₮₴₪]+)$/
+            )
+          ) {
             symbolElement = child;
             symbolText = text;
           } else if (symbolElement && text.match(/^[\d,]+\.?\d*$/)) {
@@ -890,32 +895,20 @@ if (
 
         // If we found a symbol and at least one number, we likely have a split price
         if (symbolElement && priceElements.length > 0) {
-          // Reconstruct the price
+          // Reconstruct the price by simply concatenating all parts
           let fullPriceText = "";
-          priceElements.forEach((el, index) => {
-            if (index === 0) {
-              fullPriceText += el.textContent.trim();
-            } else {
-              // Handle decimal parts
-              const prevText = priceElements[index - 1].textContent.trim();
-              const currentText = el.textContent.trim();
-              if (prevText.endsWith(".") || currentText.match(/^\d{2}$/)) {
-                fullPriceText += currentText;
-              } else {
-                fullPriceText += "." + currentText;
-              }
-            }
+          priceElements.forEach((el) => {
+            fullPriceText += el.textContent.trim();
           });
 
-          // Clean up the price text
-          fullPriceText = fullPriceText.replace(/,/g, "").replace(/\.+/g, ".");
+          debug.log("Reconstructed split price text:", fullPriceText);
 
           // Ensure we actually have numeric content
           if (!fullPriceText || !fullPriceText.match(/\d/)) {
             return; // Skip this element - no numeric content
           }
 
-          const price = parseFloat(fullPriceText);
+          const price = this.extractPrice(fullPriceText);
 
           debug.log(
             `Found split price: ${symbolText}${fullPriceText} = ${price}`
@@ -1070,10 +1063,14 @@ if (
         "£": "GBP",
         "¥": "JPY",
         C$: "CAD",
+        CA$: "CAD",
         A$: "AUD",
+        AU$: "AUD",
         NZ$: "NZD",
         HK$: "HKD",
         S$: "SGD",
+        SG$: "SGD",
+        US$: "USD",
         "₹": "INR",
         R$: "BRL",
         R: "ZAR",
@@ -1369,8 +1366,20 @@ if (
     }
 
     extractPrice(priceText) {
+      debug.log("extractPrice called with:", priceText);
+
+      // First, remove any currency codes at the end (e.g., " HKD", " USD")
+      let textWithoutCode = priceText.replace(
+        /\s+(USD|EUR|GBP|JPY|CAD|AUD|CHF|CNY|INR|KRW|MXN|BRL|RUB|SGD|HKD|NZD|SEK|NOK|DKK|PLN|TRY|ZAR|ILS|CZK|HUF|RON|BGN|IDR|PHP|MYR|ISK)$/i,
+        ""
+      );
+
+      debug.log("After removing currency code:", textWithoutCode);
+
       // Remove currency symbols and extract numeric value
-      let cleanedText = priceText.replace(/[^0-9.,]/g, "");
+      let cleanedText = textWithoutCode.replace(/[^0-9.,]/g, "");
+
+      debug.log("After cleaning:", cleanedText);
 
       // If no digits found, return null
       if (!cleanedText || !cleanedText.match(/\d/)) {
@@ -1405,6 +1414,8 @@ if (
 
       const price = parseFloat(normalizedText);
 
+      debug.log("Final price:", price);
+
       // Return null for invalid prices
       return price && !isNaN(price) && price > 0 ? price : null;
     }
@@ -1432,12 +1443,35 @@ if (
 
     extractCurrency(priceText, textNode = null) {
       // Check for specific multi-character currency symbols first
-      if (priceText.includes("C$")) return "CAD";
-      if (priceText.includes("A$")) return "AUD";
-      if (priceText.includes("NZ$")) return "NZD";
-      if (priceText.includes("S$")) return "SGD";
-      if (priceText.includes("HK$")) return "HKD";
+      if (priceText.includes("C$") || priceText.match(/CA\s*\$/)) return "CAD";
+      if (priceText.includes("A$") || priceText.match(/AU\s*\$/)) return "AUD";
+      if (priceText.includes("NZ$") || priceText.match(/NZ\s*\$/)) return "NZD";
+      if (priceText.includes("S$") || priceText.match(/SG\s*\$/)) return "SGD";
+      if (priceText.includes("HK$") || priceText.match(/HK\s*\$/)) return "HKD";
       if (priceText.includes("US$")) return "USD";
+
+      // Check for currency code with $ patterns (e.g., AUD$, CAD$)
+      if (priceText.match(/CAD\s*\$/)) return "CAD";
+      if (priceText.match(/AUD\s*\$/)) return "AUD";
+      if (priceText.match(/NZD\s*\$/)) return "NZD";
+      if (priceText.match(/SGD\s*\$/)) return "SGD";
+      if (priceText.match(/HKD\s*\$/)) return "HKD";
+
+      // Check for yen/yuan specific patterns
+      if (priceText.match(/JP\s*¥/) || priceText.match(/JPY\s*¥/)) return "JPY";
+      if (
+        priceText.match(/CN\s*¥/) ||
+        priceText.match(/CNY\s*¥/) ||
+        priceText.includes("RMB") ||
+        priceText.includes("元")
+      )
+        return "CNY";
+
+      // Check for kr specific patterns
+      if (priceText.match(/SEK\s*kr/i)) return "SEK";
+      if (priceText.match(/NOK\s*kr/i)) return "NOK";
+      if (priceText.match(/DKK\s*kr/i)) return "DKK";
+      if (priceText.match(/ISK\s*kr/i)) return "ISK";
 
       // Check for Bitcoin symbol
       if (priceText.includes("₿")) return "BTC";
