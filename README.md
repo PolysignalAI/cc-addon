@@ -129,18 +129,22 @@ We welcome contributions! Please feel free to submit a Pull Request. For major c
 ### Development Guidelines
 
 1. **Code Style**: Code is automatically formatted with Prettier on commit
-2. **Commit Messages**: Use conventional commits format:
+2. **Testing**: Tests run automatically on commits to `cc/src/` files. All tests must pass before merging
+3. **Commit Messages**: Use conventional commits format:
    - `feat: add new feature`
    - `fix: resolve bug`
    - `docs: update documentation`
    - See [commit guidelines](.husky/commit-msg) for all types
-3. **Cross-browser compatibility**: Test on both Chrome and Firefox
-4. **Documentation**: Update relevant docs in the `docs/` folder
-5. **Website**: Make sure the website interactive demo still functions appropriately. The easiest way is to serve the `web` folder by using something like: `python -m http.server 8000` inside the `web` dir.
+4. **Cross-browser compatibility**: Test on both Chrome and Firefox
+5. **Documentation**: Update relevant docs in the `docs/` folder
+6. **Website**: Make sure the website interactive demo still functions appropriately. The easiest way is to serve the `web` folder by using something like: `python -m http.server 8000` inside the `web` dir.
 
 ### Available Commands
 
 ```bash
+npm test              # Run tests
+npm run test:watch    # Run tests in watch mode
+npm run test:coverage # Generate coverage report
 npm run format        # Format all files
 npm run format:check  # Check formatting without changing files
 node build.js         # Build extension for all browsers
