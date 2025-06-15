@@ -172,7 +172,7 @@ if (
 
     // Smart Currency Detection Methods
     detectPageCurrency() {
-      console.log("🔍 Detecting page-wide currency...");
+      console.log("Detecting page-wide currency...");
 
       // Fast, limited selectors only - avoid expensive attribute searches
       const indicators = [
@@ -194,9 +194,7 @@ if (
             const currency = this.extractCurrencyFromElement(elements[i]);
             if (currency) {
               this.pageCurrency = currency;
-              console.log(
-                `✅ Found page currency: ${currency} from ${selector}`
-              );
+              console.log(`Found page currency: ${currency} from ${selector}`);
               return currency;
             }
           }
@@ -217,12 +215,12 @@ if (
         const match = textContent.match(pattern);
         if (match && this.isValidCurrency(match[1])) {
           this.pageCurrency = match[1];
-          console.log(`✅ Found page currency from text: ${match[1]}`);
+          console.log(`Found page currency from text: ${match[1]}`);
           return match[1];
         }
       }
 
-      console.log("ℹ️ No page-wide currency detected, using user default");
+      console.log("No page-wide currency detected, using user default");
       return null;
     }
 
@@ -1536,7 +1534,7 @@ if (
       // Fall back to page-wide currency detection
       if (this.pageCurrency) {
         console.log(
-          `💡 Using page currency: ${this.pageCurrency} for price: ${priceText}`
+          `Using page currency: ${this.pageCurrency} for price: ${priceText}`
         );
         return this.pageCurrency;
       }
@@ -1546,13 +1544,13 @@ if (
         // Check if base currency uses $ symbol
         if (this.currencyUsesSymbol(this.baseCurrency, "$")) {
           console.log(
-            `✅ Base currency ${this.baseCurrency} uses $, applying it to price: ${priceText}`
+            `Base currency ${this.baseCurrency} uses $, applying it to price: ${priceText}`
           );
           return this.baseCurrency;
         }
         // Base currency doesn't use $, default to USD (most common $ currency)
         console.log(
-          `⚠️ Base currency ${this.baseCurrency} doesn't use $, defaulting to USD for price: ${priceText}`
+          `Base currency ${this.baseCurrency} doesn't use $, defaulting to USD for price: ${priceText}`
         );
         return "USD";
       }
@@ -1592,7 +1590,7 @@ if (
 
       // Final fallback to user's base currency
       console.log(
-        `⚠️ No currency detected for price: ${priceText}, using base currency: ${this.baseCurrency}`
+        `No currency detected for price: ${priceText}, using base currency: ${this.baseCurrency}`
       );
       return this.baseCurrency;
     }
@@ -2046,8 +2044,8 @@ if (
                 background: ${bgColorRgba} !important;
                 background-color: ${bgColorRgba} !important;
                 border-bottom: ${this.appearance.borderThickness}px ${
-        this.appearance.borderStyle
-      } ${borderColor} !important;
+                  this.appearance.borderStyle
+                } ${borderColor} !important;
                 border-radius: ${
                   this.appearance.borderRadius || 0
                 }px !important;
@@ -2063,8 +2061,8 @@ if (
                 background: ${bgColorRgba} !important;
                 background-color: ${bgColorRgba} !important;
                 border: ${this.appearance.borderThickness}px ${
-        this.appearance.borderStyle
-      } ${borderColor} !important;
+                  this.appearance.borderStyle
+                } ${borderColor} !important;
                 border-radius: ${
                   this.appearance.borderRadius || 0
                 }px !important;

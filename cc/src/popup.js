@@ -348,9 +348,8 @@ class PopupManager {
 
     document.getElementById("border-radius").addEventListener("input", (e) => {
       this.appearance.borderRadius = parseInt(e.target.value);
-      document.querySelector(
-        "#border-radius + .slider-value"
-      ).textContent = `${e.target.value}px`;
+      document.querySelector("#border-radius + .slider-value").textContent =
+        `${e.target.value}px`;
       this.updateAppearancePreview();
       this.debouncedSave();
     });
@@ -625,9 +624,8 @@ class PopupManager {
 
   loadAppearanceSettings() {
     // Load saved appearance settings into UI
-    document.getElementById(
-      `style-${this.appearance.highlightStyle}`
-    ).checked = true;
+    document.getElementById(`style-${this.appearance.highlightStyle}`).checked =
+      true;
 
     // Set active color preset buttons
     document.querySelectorAll(".color-preset").forEach((button) => {
@@ -659,15 +657,13 @@ class PopupManager {
       this.appearance.tooltipTheme;
 
     // Update slider value displays
-    document.querySelector(
-      "#border-thickness + .slider-value"
-    ).textContent = `${this.appearance.borderThickness}px`;
+    document.querySelector("#border-thickness + .slider-value").textContent =
+      `${this.appearance.borderThickness}px`;
     document.querySelector("#border-radius + .slider-value").textContent = `${
       this.appearance.borderRadius || 0
     }px`;
-    document.querySelector(
-      "#background-opacity + .slider-value"
-    ).textContent = `${this.appearance.backgroundOpacity}%`;
+    document.querySelector("#background-opacity + .slider-value").textContent =
+      `${this.appearance.backgroundOpacity}%`;
   }
 
   updateAppearancePreview() {
@@ -895,11 +891,10 @@ class PopupManager {
         this.debouncedSave();
 
         if (isAutomatic) {
-          if (DEBUG)
-            console.log("🌍 Auto-detected currency:", detectedCurrency);
+          if (DEBUG) console.log("Auto-detected currency:", detectedCurrency);
         } else {
           if (DEBUG)
-            console.log("🌍 Manually detected currency:", detectedCurrency);
+            console.log("Manually detected currency:", detectedCurrency);
         }
       } else if (detectedCurrency === this.baseCurrency) {
         statusElement.textContent = `Already using detected currency: ${detectedCurrency}`;
@@ -1058,7 +1053,7 @@ class PopupManager {
     };
 
     chrome.storage.sync.set(settings, () => {
-      if (DEBUG) console.log("💾 Settings saved:", settings);
+      if (DEBUG) console.log("Settings saved:", settings);
 
       // Update only the active tab
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {

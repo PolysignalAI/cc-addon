@@ -103,7 +103,7 @@ class CurrencyDetector {
       detectedCurrency: this.detectBaseCurrency(),
     };
 
-    console.log("🌍 Currency Detection Info:", info);
+    console.log("Currency Detection Info:", info);
     return info;
   }
 }
