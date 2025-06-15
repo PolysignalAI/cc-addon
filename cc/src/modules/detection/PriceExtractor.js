@@ -100,9 +100,14 @@ export class PriceExtractor {
     }
 
     // Indian format: specific comma pattern (1,23,456)
-    if (commaCount > 0 && dotCount === 0) {
+    if (commaCount > 0) {
       const parts = text.split(",");
-      if (parts.length > 2 && parts[parts.length - 2].length === 2) {
+      // Check for Indian format: last part is 3 digits, second-last is 2 digits
+      if (
+        parts.length > 2 &&
+        parts[parts.length - 1].length === 3 &&
+        parts[parts.length - 2].length === 2
+      ) {
         return "indian";
       }
     }

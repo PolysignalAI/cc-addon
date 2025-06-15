@@ -471,6 +471,9 @@ export class PriceConverter {
     this.isProcessing = true;
 
     try {
+      // First, process split prices (currency in one element, amount in another)
+      await this.processSplitPrices();
+
       // Find all text nodes
       const textNodes = this.findTextNodes(document.body);
 
@@ -867,5 +870,313 @@ export class PriceConverter {
 
     // Clear processed nodes - create new WeakSet to release references
     this.processedNodes = new WeakSet();
+  }
+
+  /**
+   * Process split prices where currency symbol and amount are in separate elements
+   */
+  async processSplitPrices() {
+    try {
+      // Look for common split price patterns
+      // Pattern 1: <span>$</span><span>99</span><span>99</span> (Amazon style)
+      // Pattern 2: <span>AU$</span> <span>1,234.56</span>
+
+      // Find all elements that might contain currency symbols
+      const currencyElements = document.querySelectorAll("span, div, sup");
+
+      for (const element of currencyElements) {
+        // Skip if already processed
+        if (element.classList.contains(EXTENSION_CLASSES.wrapper)) continue;
+        if (this.processedNodes.has(element)) continue;
+
+        const text = element.textContent.trim();
+
+        // Check if this element contains only a currency symbol
+        if (this.isCurrencySymbolOnly(text)) {
+          // Look for adjacent price elements
+          const priceData = this.findAdjacentPrice(element, text);
+
+          if (priceData) {
+            this.createSplitPriceElement(element, priceData);
+          }
+        }
+      }
+    } catch (error) {
+      debug.error("Error processing split prices:", error);
+    }
+  }
+
+  /**
+   * Check if text contains only a currency symbol
+   */
+  isCurrencySymbolOnly(text) {
+    // Check for multi-character symbols
+    const multiCharSymbols = Object.keys(MULTI_CHAR_CURRENCY_SYMBOLS);
+    for (const symbol of multiCharSymbols) {
+      if (text === symbol) return true;
+    }
+
+    // Check for single character symbols
+    const singleSymbols = [
+      "$",
+      "€",
+      "£",
+      "¥",
+      "₹",
+      "₩",
+      "₺",
+      "₽",
+      "₴",
+      "₪",
+      "₦",
+      "₵",
+      "₨",
+      "₫",
+      "₱",
+      "₡",
+      "₸",
+      "₮",
+      "฿",
+    ];
+    return singleSymbols.includes(text);
+  }
+
+  /**
+   * Find adjacent price elements
+   */
+  findAdjacentPrice(currencyElement, currencySymbol) {
+    const parent = currencyElement.parentElement;
+    if (!parent) return null;
+
+    // Get all child elements
+    const siblings = Array.from(parent.children);
+    const currencyIndex = siblings.indexOf(currencyElement);
+
+    // Look for price parts after the currency symbol
+    let priceText = "";
+    let priceElements = [];
+    let hasDecimalPoint = false;
+
+    for (let i = currencyIndex + 1; i < siblings.length; i++) {
+      const sibling = siblings[i];
+
+      // Handle Amazon-style nested elements (like a-price-whole with nested decimal)
+      if (sibling.classList?.contains("a-price-whole")) {
+        // Extract text from the whole price element, excluding the decimal point element
+        const wholeText = this.extractTextFromElement(sibling, [
+          "a-price-decimal",
+        ]);
+        priceText += wholeText;
+        priceElements.push(sibling);
+
+        // Check if there's a nested decimal point
+        const decimalElement = sibling.querySelector(".a-price-decimal");
+        if (decimalElement) {
+          priceText += ".";
+          hasDecimalPoint = true;
+        }
+        continue;
+      }
+
+      // Handle Amazon fraction
+      if (sibling.classList?.contains("a-price-fraction")) {
+        if (!hasDecimalPoint && priceText && !priceText.includes(".")) {
+          priceText += ".";
+        }
+        priceText += sibling.textContent.trim();
+        priceElements.push(sibling);
+        break; // Stop after fraction
+      }
+
+      const text = sibling.textContent.trim();
+
+      // Check if this looks like a price part
+      if (/^[\d,]+$/.test(text)) {
+        // Special handling for superscript cents
+        if (
+          sibling.tagName === "SUP" &&
+          text.length === 2 &&
+          /^\d{2}$/.test(text)
+        ) {
+          // This is cents in superscript
+          if (priceText && !priceText.includes(".")) {
+            priceText = priceText + "." + text;
+          } else {
+            priceText += text;
+          }
+          priceElements.push(sibling);
+          break; // Stop after superscript cents
+        }
+        // For cases where we have two adjacent number spans (like <span>99</span><span>99</span>)
+        else if (
+          priceText &&
+          /^\d+$/.test(priceText) &&
+          text.length === 2 &&
+          /^\d{2}$/.test(text) &&
+          !hasDecimalPoint
+        ) {
+          priceText += "." + text;
+          priceElements.push(sibling);
+          hasDecimalPoint = true;
+        } else {
+          priceText += text;
+          priceElements.push(sibling);
+        }
+      } else if (
+        text === "." ||
+        sibling.classList?.contains("a-price-decimal")
+      ) {
+        priceText += ".";
+        priceElements.push(sibling);
+        hasDecimalPoint = true;
+      } else {
+        // Check if this could be a full price (like "1,234.56")
+        if (/^[\d,]+(?:\.\d+)?$/.test(text)) {
+          priceText = text;
+          priceElements.push(sibling);
+          break; // Found complete price
+        }
+        // For split prices with space, check if next element might be the price
+        if (!priceText && i === currencyIndex + 1) {
+          // Try next sibling
+          continue;
+        }
+        break;
+      }
+    }
+
+    if (priceText && /\d/.test(priceText)) {
+      const price = this.priceExtractor.extractPrice(priceText);
+      const currency = this.currencyDetector.extractCurrency(
+        currencySymbol + priceText
+      );
+
+      if (price && this.priceExtractor.isValidPrice(price)) {
+        return {
+          price,
+          currency,
+          priceElements,
+          fullText: currencySymbol + priceText,
+        };
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Extract text from element, excluding certain child classes
+   */
+  extractTextFromElement(element, excludeClasses = []) {
+    let text = "";
+    for (const node of element.childNodes) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        text += node.textContent;
+      } else if (node.nodeType === Node.ELEMENT_NODE) {
+        // Check if this element should be excluded
+        const shouldExclude = excludeClasses.some((cls) =>
+          node.classList?.contains(cls)
+        );
+        if (!shouldExclude) {
+          text += this.extractTextFromElement(node, excludeClasses);
+        }
+      }
+    }
+    return text;
+  }
+
+  /**
+   * Create price element for split price display
+   */
+  createSplitPriceElement(currencyElement, priceData) {
+    try {
+      const { price, currency, priceElements, fullText } = priceData;
+
+      // Calculate conversions
+      const selectedCurrencies = this.settings.getSelectedCurrencies();
+      const conversions = this.currencyConverter.calculateConversions(
+        price,
+        currency,
+        selectedCurrencies
+      );
+
+      if (conversions.length === 0) return;
+
+      // Create wrapper that will contain all elements
+      const wrapper = document.createElement("span");
+      wrapper.className = EXTENSION_CLASSES.wrapper;
+      wrapper.dataset.currency = currency;
+      wrapper.dataset.amount = price;
+
+      // Apply appearance
+      this.styleManager.applyToElement(wrapper);
+
+      // Create tooltip
+      const tooltip = this.tooltipManager.createTooltip(
+        conversions,
+        currency,
+        price
+      );
+
+      wrapper._tooltip = tooltip;
+
+      // Set up hover handlers
+      wrapper.addEventListener("mouseenter", () => {
+        try {
+          const currentTooltip = wrapper._tooltip || tooltip;
+          const currentSelectedCurrencies =
+            this.settings.getSelectedCurrencies();
+          const updatedConversions =
+            this.currencyConverter.calculateConversions(
+              parseFloat(wrapper.dataset.amount),
+              wrapper.dataset.currency,
+              currentSelectedCurrencies
+            );
+
+          const newContent = this.tooltipManager.buildTooltipContent(
+            updatedConversions,
+            wrapper.dataset.currency,
+            parseFloat(wrapper.dataset.amount)
+          );
+
+          currentTooltip.innerHTML = newContent;
+          this.tooltipManager.show(wrapper, currentTooltip);
+        } catch (error) {
+          debug.error("Error in mouseenter handler:", error);
+        }
+      });
+
+      wrapper.addEventListener("mouseleave", () => {
+        try {
+          const currentTooltip = wrapper._tooltip || tooltip;
+          this.tooltipManager.hide(currentTooltip);
+        } catch (error) {
+          debug.error("Error in mouseleave handler:", error);
+        }
+      });
+
+      // Move all elements into the wrapper
+      const parent = currencyElement.parentElement;
+      parent.insertBefore(wrapper, currencyElement);
+
+      // Move currency element and price elements into wrapper
+      wrapper.appendChild(currencyElement);
+      for (const elem of priceElements) {
+        wrapper.appendChild(elem);
+      }
+
+      // Mark elements as processed
+      this.processedNodes.add(currencyElement);
+      priceElements.forEach((elem) => this.processedNodes.add(elem));
+
+      // Track conversion
+      this.messageHandler.trackConversion({
+        from: currency,
+        amount: price,
+        conversions: conversions.length,
+      });
+    } catch (error) {
+      debug.error("Error creating split price element:", error);
+    }
   }
 }

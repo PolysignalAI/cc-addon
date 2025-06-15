@@ -44,6 +44,16 @@ export class CurrencyDetector {
    * Detect currency from specific patterns (yen/yuan, krona, etc.)
    */
   detectSpecificPatterns(text) {
+    // Check for R$ (Brazilian Real) first
+    if (text.includes("R$")) return "BRL";
+
+    // South African Rand
+    if (text.match(/^R\s*[\d,]/)) return "ZAR";
+    if (text.match(/^R[\d,]/)) return "ZAR";
+
+    // Indian Rupees
+    if (text.match(/\bRs\./)) return "INR";
+
     // Yen/Yuan specific patterns
     if (text.match(/JP\s*¥/) || text.match(/JPY\s*¥/)) return "JPY";
     if (

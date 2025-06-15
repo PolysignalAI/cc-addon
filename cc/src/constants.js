@@ -199,77 +199,185 @@ export const SYMBOL_TO_COINGECKO_ID = Object.fromEntries(
   Object.entries(COINGECKO_ID_TO_SYMBOL).map(([id, symbol]) => [symbol, id])
 );
 
+// Multi-character currency symbols (order matters - most specific first)
+export const MULTI_CHAR_CURRENCY_SYMBOLS = {
+  // Most specific patterns first (3 characters)
+  CAD$: "CAD",
+  AUD$: "AUD",
+  NZD$: "NZD",
+  HKD$: "HKD",
+  SGD$: "SGD",
+
+  // 2-character patterns with letter+$
+  CA$: "CAD",
+  AU$: "AUD",
+  NZ$: "NZD",
+  HK$: "HKD",
+  SG$: "SGD",
+  US$: "USD",
+  NT$: "TWD",
+
+  // Single letter patterns (must come last)
+  C$: "CAD",
+  A$: "AUD",
+  S$: "SGD",
+  R$: "BRL",
+
+  // Other currency patterns
+  "JP¥": "JPY",
+  "CN¥": "CNY",
+  SEKkr: "SEK",
+  NOKkr: "NOK",
+  DKKkr: "DKK",
+  ISKkr: "ISK",
+};
+
+// Currency symbols that can represent multiple currencies
+export const MULTI_CURRENCY_SYMBOLS = {
+  $: ["USD", "CAD", "AUD", "NZD", "HKD", "SGD", "TWD", "MXN"],
+  "¥": ["JPY", "CNY"],
+  kr: ["SEK", "NOK", "DKK", "ISK"],
+  "₨": ["INR", "PKR", "NPR", "LKR"],
+};
+
+// Currency meta tag selectors for page currency detection
+export const CURRENCY_META_SELECTORS = [
+  'meta[property="og:price:currency"]',
+  'meta[property="product:price:currency"]',
+  'meta[itemprop="priceCurrency"]',
+  'meta[name="currency"]',
+  'meta[property="twitter:data1"]',
+];
+
+// Common patterns for page currency detection
+export const PAGE_CURRENCY_PATTERNS = [
+  /currency['":\s]+([A-Z]{3})/i,
+  /priceCurrency['":\s]+([A-Z]{3})/i,
+  /"currency":\s*"([A-Z]{3})"/i,
+  /data-currency="([A-Z]{3})"/i,
+  /class="[^"]*currency-([A-Z]{3})[^"]*"/i,
+];
+
 // Price detection patterns
 export const PRICE_PATTERNS = [
-  // Basic currency symbols
-  /\$\s*[\d,]+\.?\d*/g, // $123.45
-  /USD\s*[\d,]+\.?\d*/g, // USD 123.45
-  /€\s*[\d,]+(?:\.\d{3})*(?:,\d+)?/g, // €1.234,56 (European format)
-  /€\s*[\d,]+\.?\d*/g, // €123.45
-  /EUR\s*[\d,]+\.?\d*/g, // EUR 123.45
-  /£\s*[\d,]+\.?\d*/g, // £123.45
-  /GBP\s*[\d,]+\.?\d*/g, // GBP 123.45
-  /¥\s*[\d,]+\.?\d*/g, // ¥123.45
-  /JPY\s*[\d,]+\.?\d*/g, // JPY 123.45
-  /JP\s*¥\s*[\d,]+\.?\d*/g, // JP¥ 123.45 or JP ¥123.45
-  /JPY\s*¥\s*[\d,]+\.?\d*/g, // JPY¥ 123.45
-  /CN\s*¥\s*[\d,]+\.?\d*/g, // CN¥ 123.45 or CN ¥123.45
-  /CNY\s*¥\s*[\d,]+\.?\d*/g, // CNY¥ 123.45
-  /RMB\s*[\d,]+\.?\d*/g, // RMB 123.45 (alternative for CNY)
-  /元\s*[\d,]+\.?\d*/g, // 元123.45 (Chinese character for yuan)
+  // Multi-character dollar patterns MUST come before bare $ pattern
+  // Order matters: most specific patterns first
+  /CAD\$[\d,]+(?:\.\d+)?/g, // CAD$123.45 (no space)
+  /CAD\s+\$\s*[\d,]+(?:\.\d+)?/g, // CAD $123.45 (with space)
+  /CA\$\s*[\d,]+(?:\.\d+)?/g, // CA$123.45 or CA$ 123.45
+  /CA\s+\$\s*[\d,]+(?:\.\d+)?/g, // CA $123.45 (with space)
+  /AUD\$[\d,]+(?:\.\d+)?/g, // AUD$123.45 (no space)
+  /AUD\s+\$\s*[\d,]+(?:\.\d+)?/g, // AUD $123.45 (with space)
+  /AU\$\s*[\d,]+(?:\.\d+)?/g, // AU$123.45 or AU$ 123.45
+  /AU\s+\$\s*[\d,]+(?:\.\d+)?/g, // AU $123.45 (with space)
+  // Superscript prices (cents) - must come before regular patterns
+  /CA\$\d+[⁰¹²³⁴⁵⁶⁷⁸⁹]+/g, // CA$99⁹⁹
+  /AU\$\d+[⁰¹²³⁴⁵⁶⁷⁸⁹]+/g, // AU$99⁹⁹
+  /C\$\d+[⁰¹²³⁴⁵⁶⁷⁸⁹]+/g, // C$99⁹⁹
+  /A\$\d+[⁰¹²³⁴⁵⁶⁷⁸⁹]+/g, // A$19⁹⁹⁹
+  /\$\d+[⁰¹²³⁴⁵⁶⁷⁸⁹]+/g, // $99⁹⁹
 
-  // Canadian and Australian dollars (specific patterns)
-  /C\$\s*[\d,]+\.?\d*/g, // C$123.45
-  /CA\s*\$\s*[\d,]+\.?\d*/g, // CA $123.45 or CA$123.45
-  /CAD\s*\$\s*[\d,]+\.?\d*/g, // CAD $123.45 or CAD$123.45
-  /A\$\s*[\d,]+\.?\d*/g, // A$123.45
-  /AU\s*\$\s*[\d,]+\.?\d*/g, // AU $123.45 or AU$123.45
-  /AUD\s*\$\s*[\d,]+\.?\d*/g, // AUD $123.45 or AUD$123.45
+  // Regular dollar patterns
+  /C\$\s*[\d,]+(?:\.\d+)?/g, // C$123.45 or C$ 123.45
+  /A\$\s*[\d,]+(?:\.\d+)?/g, // A$ 1,234.56 (space after A$)
+  /R\$\s*[\d,]+(?:\.\d+)?/g, // R$199.90 (Brazilian Real)
+  /NZ\$[\d,]+(?:\.\d+)?/g, // NZ$123.45 (no space)
+  /NZ\s+\$\s*[\d,]+(?:\.\d+)?/g, // NZ $123.45 (with space)
+  /NZD\s*\$\s*[\d,]+(?:\.\d+)?/g, // NZD $123.45 or NZD$123.45
+  /S\$\s*[\d,]+(?:\.\d+)?/g, // S$123.45 (Singapore)
+  /SG\s*\$\s*[\d,]+(?:\.\d+)?/g, // SG $123.45 or SG$123.45
+  /SGD\s*\$\s*[\d,]+(?:\.\d+)?/g, // SGD $123.45 or SGD$123.45
+  /HK\$[\d,]+(?:\.\d+)?/g, // HK$123.45 (no space)
+  /HK\s+\$\s*[\d,]+(?:\.\d+)?/g, // HK $123.45 (with space)
+  /HKD\s*\$\s*[\d,]+(?:\.\d+)?/g, // HKD $123.45 or HKD$123.45
 
-  // Other dollar currencies
-  /NZ\s*\$\s*[\d,]+\.?\d*/g, // NZ $123.45 or NZ$123.45
-  /NZD\s*\$\s*[\d,]+\.?\d*/g, // NZD $123.45 or NZD$123.45
-  /S\$\s*[\d,]+\.?\d*/g, // S$123.45 (Singapore)
-  /SG\s*\$\s*[\d,]+\.?\d*/g, // SG $123.45 or SG$123.45
-  /SGD\s*\$\s*[\d,]+\.?\d*/g, // SGD $123.45 or SGD$123.45
-  /HK\s*\$\s*[\d,]+\.?\d*/g, // HK $123.45 or HK$123.45
-  /HKD\s*\$\s*[\d,]+\.?\d*/g, // HKD $123.45 or HKD$123.45
+  // Dollar symbol with currency code pattern ($123 USD, $123 HKD, etc.) - must come before bare $
+  /\$\s*[\d,]+(?:\.\d+)?\s+(?:USD|CAD|AUD|NZD|SGD|HKD)\b/gi,
 
-  // Indian Rupee
-  /₹\s*[\d,]+\.?\d*/g, // ₹99,999
-  /₹\s*[\d,]+(?:,\d{2})+(?:\.\d+)?/g, // ₹1,23,456 (Indian format)
-  /INR\s*[\d,]+(?:,\d{2})+(?:\.\d+)?/g, // INR 1,23,456
-  /INR\s*[\d,]+\.?\d*/g, // INR 123.45
+  // Basic currency symbols ($ must come after specific dollar patterns)
+  /\s\$\s*[\d,]+(?:\.\d+)?/g, // $ 123.45 (space before $)
+  /\$\s*[\d,]+(?:\.\d+)?/g, // $123.45
+  /USD\s*[\d,]+(?:\.\d+)?/g, // USD 123.45
+  /€\s*[\d.,]+/g, // €123.45 or €1.234,56 (handles both formats)
+  /EUR\s*[\d,]+(?:\.\d+)?/g, // EUR 123.45
+  /£\s*[\d,]+(?:\.\d+)?/g, // £123.45
+  /GBP\s*[\d,]+(?:\.\d+)?/g, // GBP 123.45
+
+  // Yen/Yuan specific patterns (must come before generic ¥)
+  /JP\s*¥\s*[\d,]+(?:\.\d+)?/g, // JP¥ 123.45 or JP ¥123.45
+  /JPY\s*¥\s*[\d,]+(?:\.\d+)?/g, // JPY¥ 123.45
+  /CN\s*¥\s*[\d,]+(?:\.\d+)?/g, // CN¥ 123.45 or CN ¥123.45
+  /CNY\s*¥\s*[\d,]+(?:\.\d+)?/g, // CNY¥ 123.45
+  /RMB\s*[\d,]+(?:\.\d+)?/g, // RMB 123.45 (alternative for CNY)
+  /元\s*[\d,]+(?:\.\d+)?/g, // 元123.45 (Chinese character for yuan)
+  /¥\s*[\d,]+(?:\.\d+)?/g, // ¥123.45 or ¥5,000 (generic yen/yuan)
+  /JPY\s*[\d,]+(?:\.\d+)?/g, // JPY 123.45
+  /CNY\s*[\d,]+(?:\.\d+)?/g, // CNY 123.45
+
+  // Indian Rupee (Indian format patterns must come before generic patterns)
+  /₹\s*\d{1,2}(?:,\d{2})+,\d{3}(?:\.\d+)?/g, // ₹1,23,456 (Indian format with groups of 2)
+  /₹\s*[\d,]+(?:\.\d+)?/g, // ₹99,999 or ₹99,999.99 (generic format)
+  /Rs\.\s*[\d,]+(?:\.\d+)?/g, // Rs. 1,234.56 (alternative notation)
+  /INR\s*\d{1,2}(?:,\d{2})+,\d{3}(?:\.\d+)?/g, // INR 1,23,456 (Indian format)
+  /INR\s*[\d,]+(?:\.\d+)?/g, // INR 123.45 (generic format)
+
+  // Korean Won
+  /₩\s*[\d,]+(?:\.\d+)?/g, // ₩50,000
+  /KRW\s*[\d,]+(?:\.\d+)?/g, // KRW 50,000
+
+  // Brazilian Real (R$ pattern moved up to come before bare $)
+  /BRL\s*[\d,]+(?:\.\d+)?/g, // BRL 199.90
+
+  // South African Rand
+  /R\s+[\d,]+(?:\.\d+)?/g, // R 123.45 (with space)
+  /R[\d,]+(?:\.\d+)?/g, // R123.45 (no space)
+  /ZAR\s*[\d,]+(?:\.\d+)?/g, // ZAR 123.45
+
+  // Turkish Lira
+  /₺\s*[\d,]+(?:\.\d+)?/g, // ₺1,234.56
+  /TRY\s*[\d,]+(?:\.\d+)?/g, // TRY 1,234.56
+
+  // Polish Zloty
+  /zł\s*[\d,]+(?:\.\d+)?/g, // zł123.45
+  /PLN\s*[\d,]+(?:\.\d+)?/g, // PLN 123.45
+
+  // Thai Baht
+  /฿\s*[\d,]+(?:\.\d+)?/g, // ฿999
+  /THB\s*[\d,]+(?:\.\d+)?/g, // THB 999
+
+  // Philippine Peso
+  /₱\s*[\d,]+(?:\.\d+)?/g, // ₱1,234.56
+  /PHP\s*[\d,]+(?:\.\d+)?/g, // PHP 1,234.56
 
   // Swiss Franc
-  /CHF\s*[\d,]+\.?\d*/g, // CHF 789.00
+  /CHF\s*[\d,]+(?:\.\d+)?/g, // CHF 789.00
 
-  // Scandinavian currencies (kr is shared by SEK, NOK, DKK, ISK)
-  /kr\s*[\d,]+(?:,\d+)?/g, // kr 123,45 (comma as decimal)
-  /kr\s*[\d,]+\.?\d*/g, // kr 123.45
-  /SEK\s*[\d,]+\.?\d*/g, // SEK 123.45
-  /NOK\s*[\d,]+\.?\d*/g, // NOK 123.45
-  /DKK\s*[\d,]+\.?\d*/g, // DKK 123.45
-  /ISK\s*[\d,]+\.?\d*/g, // ISK 123.45
-  /SEK\s*kr\s*[\d,]+\.?\d*/g, // SEKkr 123.45 or SEK kr 123.45
-  /NOK\s*kr\s*[\d,]+\.?\d*/g, // NOKkr 123.45 or NOK kr 123.45
-  /DKK\s*kr\s*[\d,]+\.?\d*/g, // DKKkr 123.45 or DKK kr 123.45
-  /ISK\s*kr\s*[\d,]+\.?\d*/g, // ISKkr 123.45 or ISK kr 123.45
-  /[\d,]+\.?\d*\s*kr/g, // 123.45kr (amount before kr)
+  // Scandinavian currencies - specific patterns must come before generic kr
+  /SEKkr\s*[\d,]+(?:\.\d+)?/g, // SEKkr 123.45 (no space)
+  /SEK\s+kr\s*[\d,]+(?:\.\d+)?/g, // SEK kr 123.45 (with space)
+  /NOKkr\s*[\d,]+(?:\.\d+)?/g, // NOKkr 123.45 (no space)
+  /NOK\s+kr\s*[\d,]+(?:\.\d+)?/g, // NOK kr 123.45 (with space)
+  /DKKkr\s*[\d,]+(?:\.\d+)?/g, // DKKkr 123.45 (no space)
+  /DKK\s+kr\s*[\d,]+(?:\.\d+)?/g, // DKK kr 123.45 (with space)
+  /ISKkr\s*[\d,]+(?:\.\d+)?/g, // ISKkr 123.45 (no space)
+  /ISK\s+kr\s*[\d,]+(?:\.\d+)?/g, // ISK kr 123.45 (with space)
+  /SEK\s*[\d,]+(?:\.\d+)?/g, // SEK 123.45
+  /NOK\s*[\d,]+(?:\.\d+)?/g, // NOK 123.45
+  /DKK\s*[\d,]+(?:\.\d+)?/g, // DKK 123.45
+  /ISK\s*[\d,]+(?:\.\d+)?/g, // ISK 123.45
+  /kr\s*[\d.,]+/g, // kr 123.45 or kr 1.234,56 (generic kr, must come last)
+  /[\d,]+(?:\.\d+)?\s*kr/g, // 123.45kr (amount before kr)
 
   // Cryptocurrencies
-  /₿\s*[\d,]+\.?\d*/g, // ₿0.00123456
-  /\b(?:BTC|ETH|BNB|XRP|SOL|DOGE|TRX|ADA|BCH|XLM|LTC|DOT|XMR|PEPE|AAVE|PI|CRO|TRUMP|VET|RENDER|WLD)\s+[\d,]+\.?\d*/gi, // BTC 0.001
-  /\b[\d,]+\.?\d*\s+(?:BTC|ETH|BNB|XRP|SOL|DOGE|TRX|ADA|BCH|XLM|LTC|DOT|XMR|PEPE|AAVE|PI|CRO|TRUMP|VET|RENDER|WLD)\b/gi, // 0.001 BTC
+  /₿\s*[\d,]+(?:\.\d+)?/g, // ₿0.00123456
+  /\b(?:BTC|ETH|BNB|XRP|SOL|DOGE|TRX|ADA|BCH|XLM|LTC|DOT|XMR|PEPE|AAVE|PI|CRO|TRUMP|VET|RENDER|WLD)\s+[\d,]+(?:\.\d+)?/gi, // BTC 0.001
+  /\b[\d,]+(?:\.\d+)?\s+(?:BTC|ETH|BNB|XRP|SOL|DOGE|TRX|ADA|BCH|XLM|LTC|DOT|XMR|PEPE|AAVE|PI|CRO|TRUMP|VET|RENDER|WLD)\b/gi, // 0.001 BTC
 
   // General fiat currency pattern (code before number)
-  /\b(?:USD|EUR|GBP|JPY|CAD|AUD|CHF|CNY|INR|KRW|MXN|BRL|RUB|SGD|HKD|NZD|SEK|NOK|DKK|PLN|TRY|ZAR|ILS|CZK|HUF|RON|BGN|IDR|PHP|MYR|ISK)\s+[\d,]+\.?\d*/gi,
+  /\b(?:USD|EUR|GBP|JPY|CAD|AUD|CHF|CNY|INR|KRW|MXN|BRL|RUB|SGD|HKD|NZD|SEK|NOK|DKK|PLN|TRY|ZAR|ILS|CZK|HUF|RON|BGN|IDR|PHP|MYR|ISK)\s+[\d,]+(?:\.\d+)?/gi,
 
   // General fiat currency pattern (number before code)
-  /\b[\d,]+\.?\d*\s+(?:USD|EUR|GBP|JPY|CAD|AUD|CHF|CNY|INR|KRW|MXN|BRL|RUB|SGD|HKD|NZD|SEK|NOK|DKK|PLN|TRY|ZAR|ILS|CZK|HUF|RON|BGN|IDR|PHP|MYR|ISK)\b/gi,
-
-  // Dollar symbol with currency code pattern ($123 USD, $123 HKD, etc.)
-  /\$\s*[\d,]+\.?\d*\s+(?:USD|CAD|AUD|NZD|SGD|HKD)\b/gi,
+  /\b[\d,]+(?:\.\d+)?\s+(?:USD|EUR|GBP|JPY|CAD|AUD|CHF|CNY|INR|KRW|MXN|BRL|RUB|SGD|HKD|NZD|SEK|NOK|DKK|PLN|TRY|ZAR|ILS|CZK|HUF|RON|BGN|IDR|PHP|MYR|ISK)\b/gi,
 ];
 
 // Debug flag - set to false in production
@@ -595,62 +703,4 @@ export const EXTENSION_CLASSES = {
   background: "cc-style-background",
   tooltip: "currency-tooltip",
   error: "cc-error-warning",
-};
-
-// Meta tag selectors for currency detection
-export const CURRENCY_META_SELECTORS = [
-  'meta[property="og:price:currency"]',
-  'meta[property="product:price:currency"]',
-  'meta[itemprop="priceCurrency"]',
-  'meta[name="currency"]',
-  'meta[property="twitter:data1"]',
-];
-
-// Currency detection patterns for page text
-export const PAGE_CURRENCY_PATTERNS = [
-  /currency[:\s]+([A-Z]{3})/i,
-  /prices?\s+(?:are\s+)?(?:in|shown|displayed)\s+([A-Z]{3})/i,
-  /\(([A-Z]{3})\)\s*prices?/i,
-  /all\s+prices?\s+(?:are\s+)?(?:in|shown|displayed)?\s*([A-Z]{3})/i,
-];
-
-// Multi-character currency symbols mapping
-export const MULTI_CHAR_CURRENCY_SYMBOLS = {
-  C$: "CAD",
-  CA$: "CAD",
-  CAD$: "CAD",
-  A$: "AUD",
-  AU$: "AUD",
-  AUD$: "AUD",
-  NZ$: "NZD",
-  S$: "SGD",
-  SG$: "SGD",
-  SGD$: "SGD",
-  HK$: "HKD",
-  HKD$: "HKD",
-  NT$: "TWD",
-  TWD$: "TWD",
-  R$: "BRL",
-  BRL$: "BRL",
-  Mex$: "MXN",
-  MX$: "MXN",
-  MXN$: "MXN",
-  CLP$: "CLP",
-  AR$: "ARS",
-  ARS$: "ARS",
-  COL$: "COP",
-  COP$: "COP",
-  U$S: "USD",
-  US$: "USD",
-  USD$: "USD",
-};
-
-// Symbols that can represent multiple currencies
-export const MULTI_CURRENCY_SYMBOLS = {
-  $: ["USD", "CAD", "AUD", "NZD", "SGD", "HKD", "MXN", "ARS", "CLP", "COP"],
-  kr: ["SEK", "NOK", "DKK", "ISK"],
-  "₹": ["INR"],
-  "¥": ["JPY", "CNY"],
-  "£": ["GBP"],
-  R: ["ZAR", "BRL"],
 };
