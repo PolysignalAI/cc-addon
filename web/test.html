@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currency Converter - Test Page</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #555;
+            margin-top: 30px;
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: #fafafa;
+        }
+        .test-case {
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 3px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .description {
+            font-size: 0.9em;
+            color: #666;
+            font-style: italic;
+            margin-bottom: 5px;
+        }
+        .price-display {
+            font-size: 1.2em;
+            color: #333;
+            font-weight: 500;
+        }
+        .split-price {
+            display: inline-flex;
+            align-items: baseline;
+        }
+        .split-price span {
+            margin: 0 2px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background: #f0f0f0;
+        }
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .product-card {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            background: white;
+        }
+        .price-tag {
+            font-size: 1.5em;
+            color: #d63031;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Currency Converter Extension - Test Page</h1>
+    
+    <div class="warning">
+        <strong>Test Instructions:</strong> Install the Currency Converter extension and visit this page. 
+        Hover over prices to see if tooltips appear correctly. Edge cases that should NOT show tooltips are marked.
+    </div>
+
+    <h2>Standard Price Formats</h2>
+    <div class="test-section">
+        <div class="test-case">
+            <div class="description">Basic USD prices with symbol</div>
+            <div class="price-display">$99.99</div>
+            <div class="price-display">$1,234.56</div>
+            <div class="price-display">$1,234,567.89</div>
+        </div>
+        
+        <div class="test-case">
+            <div class="description">Basic EUR prices with symbol</div>
+            <div class="price-display">€99.99</div>
+            <div class="price-display">€1,234.56</div>
+            <div class="price-display">€1.234,56 (European format)</div>
+        </div>
+        
+        <div class="test-case">
+            <div class="description">Basic GBP prices with symbol</div>
+            <div class="price-display">£99.99</div>
+            <div class="price-display">£1,234.56</div>
+        </div>
+        
+        <div class="test-case">
+            <div class="description">Currency codes with amounts</div>
+            <div class="price-display">USD 99.99</div>
+            <div class="price-display">EUR 1234.56</div>
+            <div class="price-display">GBP 999</div>
+        </div>
+    </div>
+
+    <h2>Split Price Structures (Common in E-commerce)</h2>
+    <div class="test-section">
+        <div class="test-case">
+            <div class="description">Amazon-style split prices</div>
+            <div class="price-display split-price">
+                <span>$</span><span>99</span><span>99</span>
+            </div>
+            <br>
+            <div class="price-display split-price">
+                <span>€</span><span>1,234</span><span>.</span><span>56</span>
+            </div>
+        </div>
+        
+        <div class="test-case">
+            <div class="description">Price with superscript cents</div>
+            <div class="price-display">
+                $99<sup>99</sup>
+            </div>
+        </div>
+    </div>
+
+    <h2>Edge Cases - Should NOT Show Tooltips</h2>
+    <div class="test-section" style="background: #ffe6e6;">
+        <div class="test-case">
+            <div class="description">Standalone currency symbols (NO NUMBERS)</div>
+            <div class="price-display">$</div>
+            <div class="price-display">€</div>
+            <div class="price-display">£</div>
+            <div class="price-display">¥</div>
+        </div>
+        
+        <div class="test-case">
+            <div class="description">Standalone currency codes (NO NUMBERS)</div>
+            <div class="price-display">USD</div>
+            <div class="price-display">EUR</div>
+            <div class="price-display">GBP</div>
+            <div class="price-display">Bitcoin: BTC</div>
+        </div>
+        
+        <div class="test-case">
+            <div class="description">Incomplete prices</div>
+            <div class="price-display">Price: $</div>
+            <div class="price-display">Cost in EUR</div>
+            <div class="price-display">£ (TBD)</div>
+        </div>
+    </div>
+
+    <h2>International Currency Formats</h2>
+    <div class="test-section">
+        <div class="test-case">
+            <div class="description">Japanese Yen</div>
+            <div class="price-display">¥1,234</div>
+            <div class="price-display">JPY 9,999</div>
+        </div>
+        
+        <div class="test-case">
+            <div class="description">Indian Rupee</div>
+            <div class="price-display">₹99,999</div>
+            <div class="price-display">INR 1,23,456</div>
+        </div>
+        
+        <div class="test-case">
+            <div class="description">Various symbols</div>
+            <div class="price-display">C$123.45 (Canadian)</div>
+            <div class="price-display">A$456.78 (Australian)</div>
+            <div class="price-display">CHF 789.00 (Swiss)</div>
+            <div class="price-display">kr 123,45 (Scandinavian)</div>
+        </div>
+    </div>
+
+    <h2>Cryptocurrency Prices</h2>
+    <div class="test-section">
+        <div class="test-case">
+            <div class="description">Bitcoin variations</div>
+            <div class="price-display">BTC 0.00123456</div>
+            <div class="price-display">₿0.00123456</div>
+            <div class="price-display">0.00123456 BTC</div>
+        </div>
+        
+        <div class="test-case">
+            <div class="description">Other cryptocurrencies</div>
+            <div class="price-display">ETH 1.23456789</div>
+            <div class="price-display">0.123 ETH</div>
+            <div class="price-display">DOGE 1234.5678</div>
+        </div>
+    </div>
+
+    <h2>Complex Real-World Scenarios</h2>
+    <div class="test-section">
+        <div class="test-case">
+            <div class="description">Product listing with multiple prices</div>
+            <div class="product-card">
+                <h3>Premium Laptop</h3>
+                <p>Was: <del>$1,299.99</del></p>
+                <p class="price-tag">Now: $999.99</p>
+                <p>Save: $300.00 (23% off)</p>
+                <p>Or pay in 4 installments of $250.00</p>
+            </div>
+        </div>
+        
+        <div class="test-case">
+            <div class="description">Price table</div>
+            <table>
+                <tr>
+                    <th>Product</th>
+                    <th>USD Price</th>
+                    <th>EUR Price</th>
+                    <th>GBP Price</th>
+                </tr>
+                <tr>
+                    <td>Basic Plan</td>
+                    <td>$9.99/mo</td>
+                    <td>€8.99/mo</td>
+                    <td>£7.99/mo</td>
+                </tr>
+                <tr>
+                    <td>Pro Plan</td>
+                    <td>$19.99/mo</td>
+                    <td>€17.99/mo</td>
+                    <td>£15.99/mo</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="test-case">
+            <div class="description">Mixed content with prices</div>
+            <p>
+                The new iPhone costs $999 in the US, but it's €1,149 in Europe and £849 in the UK. 
+                That's a difference of about $150 between US and European prices!
+                The currency symbols $ € £ appear here without numbers (should not trigger tooltips).
+            </p>
+        </div>
+    </div>
+
+    <h2>Edge Cases with Schema.org Microdata</h2>
+    <div class="test-section">
+        <div class="test-case">
+            <div class="description">Proper microdata structure</div>
+            <div itemscope itemtype="http://schema.org/Product">
+                <h3 itemprop="name">Test Product</h3>
+                <div itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+                    <span itemprop="priceCurrency" content="USD">$</span>
+                    <span itemprop="price" content="99.99">99.99</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-case">
+            <div class="description">Microdata with hidden currency</div>
+            <div itemscope itemtype="http://schema.org/Product">
+                <div itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+                    <meta itemprop="priceCurrency" content="EUR">
+                    <span itemprop="price">€123.45</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h2>Tricky Patterns</h2>
+    <div class="test-section">
+        <div class="test-case">
+            <div class="description">Prices in sentences</div>
+            <p>Buy now for just $19.99!</p>
+            <p>Special offer: was €50, now only €29.99</p>
+            <p>Get 20% off orders over £100</p>
+        </div>
+        
+        <div class="test-case">
+            <div class="description">Prices with special characters</div>
+            <div class="price-display">$99.99*</div>
+            <div class="price-display">€123.45†</div>
+            <div class="price-display">£45.00‡</div>
+        </div>
+        
+        <div class="test-case">
+            <div class="description">Negative amounts (refunds/credits)</div>
+            <div class="price-display">-$50.00</div>
+            <div class="price-display">Credit: €25.00</div>
+        </div>
+    </div>
+
+    <h2>False Positives Test</h2>
+    <div class="test-section" style="background: #ffe6e6;">
+        <div class="test-case">
+            <div class="description">These should NOT trigger tooltips</div>
+            <p>The $ symbol represents dollar</p>
+            <p>EUR is the code for Euro</p>
+            <p>Use £ for British pounds</p>
+            <p>¥ can mean Yen or Yuan</p>
+            <p>Currency: USD, EUR, GBP, JPY</p>
+            <p>Supported: $ € £ ¥</p>
+        </div>
+    </div>
+
+    <h2>Performance Test - Many Prices</h2>
+    <div class="test-section">
+        <div class="test-case">
+            <div class="description">Grid of prices (test performance with many elements)</div>
+            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;">
+                <div>$10.00</div><div>$20.00</div><div>$30.00</div><div>$40.00</div><div>$50.00</div>
+                <div>€11.00</div><div>€22.00</div><div>€33.00</div><div>€44.00</div><div>€55.00</div>
+                <div>£9.00</div><div>£18.00</div><div>£27.00</div><div>£36.00</div><div>£45.00</div>
+                <div>¥1000</div><div>¥2000</div><div>¥3000</div><div>¥4000</div><div>¥5000</div>
+                <div>BTC 0.001</div><div>BTC 0.002</div><div>BTC 0.003</div><div>BTC 0.004</div><div>BTC 0.005</div>
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-top: 50px; padding: 20px; background: #f0f0f0; text-align: center;">
+        <p><strong>End of Test Page</strong></p>
+        <p>If the extension is working correctly:</p>
+        <ul style="text-align: left; max-width: 600px; margin: 0 auto;">
+            <li>✅ Prices with numbers should show conversion tooltips on hover</li>
+            <li>❌ Standalone symbols or currency codes should NOT show tooltips</li>
+            <li>✅ Split prices should be detected and show tooltips</li>
+            <li>✅ Various currency formats should be recognized</li>
+        </ul>
+    </div>
+</body>
+</html>

@@ -972,7 +972,7 @@ if (
           
           // Ensure we actually have numeric content
           if (!fullPriceText || !fullPriceText.match(/\d/)) {
-            continue;
+            return; // Skip this element - no numeric content
           }
           
           const price = parseFloat(fullPriceText);

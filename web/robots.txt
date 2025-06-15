@@ -1,0 +1,25 @@
+# Robots.txt for Currency Converter website
+# https://cc.polysignal.com
+
+User-agent: *
+
+# Exclude test pages
+Disallow: /test.html
+Disallow: /test
+
+# Exclude the addon folder (extension files)
+Disallow: /addon/
+
+# Exclude asset files that shouldn't be indexed
+Disallow: /assets/*.webmanifest
+Disallow: /assets/site.webmanifest
+
+# Allow essential pages
+Allow: /
+Allow: /index.html
+Allow: /index
+Allow: /privacy.html
+Allow: /privacy
+
+# Sitemap location (if one is added in the future)
+# Sitemap: https://cc.polysignal.com/sitemap.xml
