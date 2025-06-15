@@ -1,4 +1,6 @@
-# Currency Converter by Polysignal
+<p align="center">
+  <img src="web/assets/github.png" alt="Currency Converter" />
+</p>
 
 A browser extension that automatically detects and converts prices on any webpage to your preferred currencies in real-time.
 
