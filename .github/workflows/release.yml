@@ -168,7 +168,6 @@ jobs:
           
           # Deploy website files (from web folder)
           rsync -avz --delete \
-            --exclude 'addon' \
             --exclude 'test.html' \
             --exclude '.DS_Store' \
             web/ \
