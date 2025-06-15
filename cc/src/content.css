@@ -6,10 +6,8 @@
 /* Removed .price-original class - styles are now applied dynamically via cc-style-* classes */
 
 .currency-tooltip {
-  position: absolute !important;
-  bottom: 100% !important;
-  left: 50% !important;
-  transform: translateX(-50%) translateY(-5px) !important;
+  position: fixed !important;
+  /* Position will be set by JavaScript */
   background: rgba(0, 0, 0, 0.95) !important;
   color: white !important;
   padding: 10px 14px !important;
@@ -40,7 +38,7 @@
 .currency-tooltip.show {
   display: block !important;
   opacity: 1 !important;
-  transform: translateX(-50%) translateY(-5px) !important;
+  /* Transform is set by JavaScript for positioning */
 }
 
 /* Arrow for tooltip */
@@ -52,6 +50,43 @@
   transform: translateX(-50%) !important;
   border: 6px solid transparent !important;
   border-top-color: rgba(0, 0, 0, 0.95) !important;
+}
+
+/* Tooltip content structure */
+.currency-tooltip-content {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+}
+
+.currency-item {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 12px !important;
+  min-width: 160px !important;
+}
+
+.currency-item.base-currency {
+  font-weight: 600 !important;
+  color: #4fc3f7 !important;
+}
+
+.currency-code {
+  font-size: 12px !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+  min-width: 35px !important;
+}
+
+.currency-item.base-currency .currency-code {
+  color: #4fc3f7 !important;
+}
+
+.currency-amount {
+  font-weight: 500 !important;
+  font-size: 13px !important;
+  color: #81c784 !important;
+  text-align: right !important;
 }
 
 /* Enhanced Tooltip Structure */

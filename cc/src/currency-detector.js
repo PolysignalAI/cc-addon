@@ -117,3 +117,6 @@ if (typeof window !== "undefined") {
 if (typeof module !== "undefined" && module.exports) {
   module.exports = CurrencyDetector;
 }
+
+// Export default for ES modules
+export default CurrencyDetector;

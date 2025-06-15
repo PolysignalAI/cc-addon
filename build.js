@@ -6,7 +6,6 @@ function setDebugFlagForProduction() {
   const constantsPath = path.join(__dirname, "cc/src/constants.js");
   let constantsContent = fs.readFileSync(constantsPath, "utf8");
 
-  // Check current DEBUG value
   const debugMatch = constantsContent.match(
     /export\s+const\s+DEBUG\s*=\s*(true|false)/
   );
@@ -17,13 +16,10 @@ function setDebugFlagForProduction() {
   }
 
   if (debugMatch[1] === "true") {
-    // Replace DEBUG = true with DEBUG = false
     constantsContent = constantsContent.replace(
       /export\s+const\s+DEBUG\s*=\s*true/,
       "export const DEBUG = false"
     );
-
-    // Write the modified content back
     fs.writeFileSync(constantsPath, constantsContent);
     console.log(
       "⚠️ Production build: DEBUG flag was changed from true to false"
@@ -69,51 +65,89 @@ function removeDir(dir) {
   }
 }
 
-// Bundle content script
+// Read all module files
+function readModule(modulePath) {
+  if (!fs.existsSync(modulePath)) {
+    console.warn(`Module not found: ${modulePath}`);
+    return "";
+  }
+  return fs.readFileSync(modulePath, "utf8");
+}
+
+// Bundle content script with all modules
 function bundleContent(outputDir) {
-  const constantsPath = path.join(__dirname, "cc/src/constants.js");
-  const contentPath = path.join(__dirname, "cc/src/content.js");
-  const currencyDetectorPath = path.join(
-    __dirname,
-    "cc/src/currency-detector.js"
+  console.log("Bundling content.js with all modules...");
+
+  // Read constants
+  let constantsContent = readModule(
+    path.join(__dirname, "cc/src/constants.js")
   );
 
-  let constantsContent = fs.readFileSync(constantsPath, "utf8");
-  let contentContent = fs.readFileSync(contentPath, "utf8");
-  let currencyDetectorContent = fs.readFileSync(currencyDetectorPath, "utf8");
+  // Read all modules in order of dependencies
+  const modules = [
+    // Core modules (ordered by dependencies)
+    "modules/core/StateManager.js",
+    "modules/core/MessageBus.js",
+    "modules/core/Settings.js",
+    "modules/core/MessageHandler.js",
+    "modules/core/ExchangeRateManager.js",
 
-  // Remove export/import statements
-  constantsContent = constantsContent.replace(
-    /export\s+(?:const|let|var)\s+/g,
-    "const "
-  );
-  constantsContent = constantsContent.replace(/export\s*{[^}]+}/g, "");
-  contentContent = contentContent.replace(
-    /import\s*{[^}]+}\s*from\s*["'][^"']+["'];?\s*/g,
-    ""
-  );
-  currencyDetectorContent = currencyDetectorContent.replace(
-    /import\s*{[^}]+}\s*from\s*["'][^"']+["'];?\s*/g,
-    ""
-  );
-  currencyDetectorContent = currencyDetectorContent.replace(
-    /export\s+(?:default\s+)?class\s+/g,
-    "class "
-  );
+    // Detection modules
+    "modules/detection/CurrencyDetector.js",
+    "modules/detection/PriceExtractor.js",
+    "modules/detection/PatternMatcher.js",
+
+    // Conversion modules
+    "modules/conversion/CurrencyConverter.js",
+
+    // UI modules
+    "modules/ui/TooltipManager.js",
+    "modules/ui/StyleManager.js",
+
+    // Main coordinator
+    "modules/core/PriceConverter.js",
+  ];
+
+  let modulesContent = "";
+  for (const modulePath of modules) {
+    const content = readModule(path.join(__dirname, "cc/src", modulePath));
+    if (content) {
+      // Remove import/export statements
+      let cleanContent = content
+        .replace(/import\s*{[^}]+}\s*from\s*["'][^"']+["'];?\s*/g, "")
+        .replace(/export\s+(?:default\s+)?class\s+/g, "class ")
+        .replace(/export\s+class\s+/g, "class ")
+        .replace(/export\s+{[^}]+};?\s*/g, "");
+
+      modulesContent += `\n// Module: ${modulePath}\n${cleanContent}\n`;
+    }
+  }
+
+  // Read main content script
+  let contentContent = readModule(path.join(__dirname, "cc/src/content.js"));
+
+  // Remove import statements from content.js
+  contentContent = contentContent
+    .replace(/import\s*{[^}]+}\s*from\s*["'][^"']+["'];?\s*/g, "")
+    .replace(/export\s*{[^}]+};?\s*/g, "");
+
+  // Remove export statements from constants
+  constantsContent = constantsContent
+    .replace(/export\s+(?:const|let|var)\s+/g, "const ")
+    .replace(/export\s*{[^}]+}/g, "");
 
   // Replace Chrome APIs with browser APIs for Firefox
   if (outputDir.includes("firefox")) {
+    constantsContent = constantsContent.replace(/chrome\./g, "browser.");
+    modulesContent = modulesContent.replace(/chrome\./g, "browser.");
     contentContent = contentContent.replace(/chrome\./g, "browser.");
-    currencyDetectorContent = currencyDetectorContent.replace(
-      /chrome\./g,
-      "browser."
-    );
   }
 
   const bundledContent = `// Auto-generated bundled content script
+// Built from modular architecture
 ${constantsContent}
 
-${currencyDetectorContent}
+${modulesContent}
 
 ${contentContent}`;
 
@@ -122,11 +156,34 @@ ${contentContent}`;
 
 // Bundle background script
 function bundleBackground(outputDir) {
+  console.log("Bundling background.js with required modules...");
+
   const constantsPath = path.join(__dirname, "cc/src/constants.js");
   const backgroundPath = path.join(__dirname, "cc/src/background.js");
 
   let constantsContent = fs.readFileSync(constantsPath, "utf8");
   let backgroundContent = fs.readFileSync(backgroundPath, "utf8");
+
+  // Read required modules for background
+  const backgroundModules = [
+    "modules/core/MessageBus.js",
+    "modules/core/ExchangeRateManager.js",
+  ];
+
+  let modulesContent = "";
+  for (const modulePath of backgroundModules) {
+    const content = readModule(path.join(__dirname, "cc/src", modulePath));
+    if (content) {
+      // Remove import/export statements
+      let cleanContent = content
+        .replace(/import\s*{[^}]+}\s*from\s*["'][^"']+["'];?\s*/g, "")
+        .replace(/export\s+(?:default\s+)?class\s+/g, "class ")
+        .replace(/export\s+class\s+/g, "class ")
+        .replace(/export\s*{[^}]+};?\s*/g, "");
+
+      modulesContent += `\n// Module: ${modulePath}\n${cleanContent}\n`;
+    }
+  }
 
   // Remove export/import statements
   constantsContent = constantsContent.replace(
@@ -141,11 +198,15 @@ function bundleBackground(outputDir) {
 
   // Replace Chrome APIs with browser APIs for Firefox
   if (outputDir.includes("firefox")) {
+    constantsContent = constantsContent.replace(/chrome\./g, "browser.");
+    modulesContent = modulesContent.replace(/chrome\./g, "browser.");
     backgroundContent = backgroundContent.replace(/chrome\./g, "browser.");
   }
 
   const bundledContent = `// Auto-generated bundled background script
 ${constantsContent}
+
+${modulesContent}
 
 ${backgroundContent}`;
 
@@ -154,36 +215,111 @@ ${backgroundContent}`;
 
 // Bundle currency detector for popup
 function bundleCurrencyDetector(outputDir) {
+  // In the new architecture, we'll create a minimal currency detector for the popup
   const constantsPath = path.join(__dirname, "cc/src/constants.js");
-  const currencyDetectorPath = path.join(
-    __dirname,
-    "cc/src/currency-detector.js"
+  let constantsContent = fs.readFileSync(constantsPath, "utf8");
+
+  // The popup needs the old CurrencyDetector class for auto-detection
+  // We'll use the module version
+  const detectorContent = readModule(
+    path.join(__dirname, "cc/src/modules/detection/CurrencyDetector.js")
   );
 
-  let constantsContent = fs.readFileSync(constantsPath, "utf8");
-  let currencyDetectorContent = fs.readFileSync(currencyDetectorPath, "utf8");
+  // Create a simplified version for the popup
+  const currencyDetectorContent = `
+class CurrencyDetector {
+  constructor() {
+    this.baseCurrency = DEFAULT_SETTINGS.baseCurrency;
+  }
 
-  // Remove export/import statements
+  detectBaseCurrency() {
+    // Try locale-based detection first
+    const localeCurrency = this.detectFromLocale();
+    if (localeCurrency) {
+      this.baseCurrency = localeCurrency;
+      return localeCurrency;
+    }
+
+    // Try timezone-based detection
+    const timezoneCurrency = this.detectFromTimezone();
+    if (timezoneCurrency) {
+      this.baseCurrency = timezoneCurrency;
+      return timezoneCurrency;
+    }
+
+    // Try language-based detection
+    const languageCurrency = this.detectFromLanguage();
+    if (languageCurrency) {
+      this.baseCurrency = languageCurrency;
+      return languageCurrency;
+    }
+
+    return this.baseCurrency;
+  }
+
+  detectFromLocale() {
+    const locale = navigator.language || navigator.userLanguage;
+    return LOCALE_CURRENCY_MAP[locale] || null;
+  }
+
+  detectFromTimezone() {
+    try {
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      return TIMEZONE_CURRENCY_MAP[timezone] || null;
+    } catch (error) {
+      console.warn("Timezone detection failed:", error);
+      return null;
+    }
+  }
+
+  detectFromLanguage() {
+    const language = navigator.language.split("-")[0];
+    return LANGUAGE_CURRENCY_MAP[language] || null;
+  }
+
+  detectFromCountry() {
+    try {
+      const locale = navigator.language || navigator.userLanguage;
+      const country = locale.split("-")[1];
+      return COUNTRY_CURRENCY_MAP[country] || null;
+    } catch (error) {
+      console.warn("Country detection failed:", error);
+      return null;
+    }
+  }
+
+  getDetectionInfo() {
+    const info = {
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      locale: navigator.language,
+      languages: navigator.languages,
+      detectedCurrency: this.detectBaseCurrency(),
+    };
+    return info;
+  }
+}
+
+// Export for use in extension
+if (typeof window !== "undefined") {
+  window.CurrencyDetector = CurrencyDetector;
+}
+
+// Export for Node.js if available
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = CurrencyDetector;
+}
+`;
+
+  // Remove export statements from constants
   constantsContent = constantsContent.replace(
     /export\s+(?:const|let|var)\s+/g,
     "const "
   );
   constantsContent = constantsContent.replace(/export\s*{[^}]+}/g, "");
-  currencyDetectorContent = currencyDetectorContent.replace(
-    /import\s*{[^}]+}\s*from\s*["'][^"']+["'];?\s*/g,
-    ""
-  );
-  currencyDetectorContent = currencyDetectorContent.replace(
-    /export\s+(?:default\s+)?class\s+/g,
-    "class "
-  );
 
   // Replace Chrome APIs with browser APIs for Firefox
   if (outputDir.includes("firefox")) {
-    currencyDetectorContent = currencyDetectorContent.replace(
-      /chrome\./g,
-      "browser."
-    );
+    constantsContent = constantsContent.replace(/chrome\./g, "browser.");
   }
 
   const bundledContent = `// Auto-generated bundled currency detector for popup
@@ -197,13 +333,28 @@ ${currencyDetectorContent}`;
   );
 }
 
-// Bundle popup script (without constants since currency-detector.js already has them)
+// Bundle popup script
 function bundlePopup(outputDir) {
-  const popupPath = path.join(__dirname, "cc/src/popup.js");
+  console.log("Bundling popup.js with required modules...");
 
+  const popupPath = path.join(__dirname, "cc/src/popup.js");
   let popupContent = fs.readFileSync(popupPath, "utf8");
 
-  // Remove import statements only (don't include constants)
+  // Read MessageBus module for popup
+  const messageBusContent = readModule(
+    path.join(__dirname, "cc/src/modules/core/MessageBus.js")
+  );
+  let cleanMessageBus = "";
+
+  if (messageBusContent) {
+    cleanMessageBus = messageBusContent
+      .replace(/import\s*{[^}]+}\s*from\s*["'][^"']+["'];?\s*/g, "")
+      .replace(/export\s+(?:default\s+)?class\s+/g, "class ")
+      .replace(/export\s+class\s+/g, "class ")
+      .replace(/export\s*{[^}]+};?\s*/g, "");
+  }
+
+  // Remove import statements
   popupContent = popupContent.replace(
     /import\s*{[^}]+}\s*from\s*["'][^"']+["'];?\s*/g,
     ""
@@ -211,10 +362,14 @@ function bundlePopup(outputDir) {
 
   // Replace Chrome APIs with browser APIs for Firefox
   if (outputDir.includes("firefox")) {
+    cleanMessageBus = cleanMessageBus.replace(/chrome\./g, "browser.");
     popupContent = popupContent.replace(/chrome\./g, "browser.");
   }
 
   const bundledContent = `// Auto-generated bundled popup script (constants loaded by currency-detector.js)
+// Module: MessageBus
+${cleanMessageBus}
+
 ${popupContent}`;
 
   fs.writeFileSync(path.join(outputDir, "src/popup.js"), bundledContent);
@@ -222,7 +377,9 @@ ${popupContent}`;
 
 // Main build function
 function build() {
-  console.log("Building browser extension packages...");
+  console.log(
+    "Building browser extension packages with modular architecture..."
+  );
 
   // Check if production build
   const isProduction = process.argv.includes("--production");
@@ -237,33 +394,34 @@ function build() {
   removeDir("firefox");
 
   // Create directories
-  fs.mkdirSync("chrome", { recursive: true });
-  fs.mkdirSync("firefox", { recursive: true });
+  fs.mkdirSync("chrome/src", { recursive: true });
+  fs.mkdirSync("firefox/src", { recursive: true });
 
-  // Copy source files to Chrome directory
-  console.log("Copying source files to chrome/ directory...");
-  copyRecursive("cc", "chrome");
+  // Copy static files (HTML, CSS, icons, etc)
+  console.log("Copying static files...");
 
-  // Copy source files to web addon directory (for the interactive demo)
-  const webAddonPath = path.join(__dirname, "web/addon");
-  if (fs.existsSync(path.dirname(webAddonPath))) {
-    console.log("Copying source files to web/addon/ directory...");
-    if (!fs.existsSync(webAddonPath)) {
-      fs.mkdirSync(webAddonPath, { recursive: true });
+  // Copy everything except src folder
+  const ccFiles = fs.readdirSync("cc");
+  for (const file of ccFiles) {
+    if (file !== "src") {
+      copyRecursive(path.join("cc", file), path.join("chrome", file));
+      copyRecursive(path.join("cc", file), path.join("firefox", file));
     }
-    copyRecursive("cc", webAddonPath);
   }
 
-  // Copy source files to Firefox directory
-  console.log("Copying source files to firefox/ directory...");
-  copyRecursive("cc", "firefox");
+  // Copy HTML and CSS files from src
+  const srcStaticFiles = ["popup.html", "popup.css", "content.css"];
+  for (const file of srcStaticFiles) {
+    const srcPath = path.join("cc/src", file);
+    if (fs.existsSync(srcPath)) {
+      fs.copyFileSync(srcPath, path.join("chrome/src", file));
+      fs.copyFileSync(srcPath, path.join("firefox/src", file));
+    }
+  }
 
-  // Handle Chrome manifest
-  console.log("Setting up Chrome manifest...");
+  // Handle manifests
+  console.log("Setting up manifests...");
   fs.copyFileSync("manifest-chrome.json", "chrome/manifest.json");
-
-  // Handle Firefox manifest
-  console.log("Setting up Firefox manifest...");
   fs.copyFileSync("manifest-firefox.json", "firefox/manifest.json");
 
   // Bundle JavaScript files
@@ -284,7 +442,34 @@ function build() {
   console.log("✅ Firefox bundling complete!");
 
   // Bundle for web if applicable
-  if (fs.existsSync(webAddonPath)) {
+  const webAddonPath = path.join(__dirname, "web/addon");
+  if (fs.existsSync(path.dirname(webAddonPath))) {
+    console.log("Copying and bundling for web demo...");
+    if (!fs.existsSync(webAddonPath)) {
+      fs.mkdirSync(webAddonPath, { recursive: true });
+    }
+
+    // Copy static files
+    for (const file of ccFiles) {
+      if (file !== "src") {
+        copyRecursive(path.join("cc", file), path.join(webAddonPath, file));
+      }
+    }
+
+    // Create src directory
+    if (!fs.existsSync(path.join(webAddonPath, "src"))) {
+      fs.mkdirSync(path.join(webAddonPath, "src"), { recursive: true });
+    }
+
+    // Copy HTML and CSS files
+    for (const file of srcStaticFiles) {
+      const srcPath = path.join("cc/src", file);
+      if (fs.existsSync(srcPath)) {
+        fs.copyFileSync(srcPath, path.join(webAddonPath, "src", file));
+      }
+    }
+
+    // Bundle JS files
     bundleContent(webAddonPath);
     bundleBackground(webAddonPath);
     bundleCurrencyDetector(webAddonPath);
@@ -297,9 +482,5 @@ function build() {
   console.log("Firefox extension files are in: firefox/");
 }
 
-// Run build if called directly
-if (require.main === module) {
-  build();
-}
-
-module.exports = { build };
+// Run build
+build();

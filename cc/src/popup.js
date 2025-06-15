@@ -7,6 +7,8 @@ import {
   DEBUG,
   debug,
 } from "./constants.js";
+import { MessageBus } from "./modules/core/MessageBus.js";
+import { CurrencyDetector } from "./modules/detection/CurrencyDetector.js";
 
 // Build currency definitions from constants
 const CURRENCIES = {
@@ -43,6 +45,7 @@ class PopupManager {
     this.extensionEnabled = true;
     this.btcDenomination = "btc";
     this.exchangeRates = {};
+    this.messageBus = new MessageBus();
 
     // Appearance settings
     this.appearance = {
@@ -773,11 +776,7 @@ class PopupManager {
   broadcastAppearanceUpdate() {
     // Send appearance settings only to active tab
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (
-        tabs[0] &&
-        tabs[0].url &&
-        (tabs[0].url.startsWith("http") || tabs[0].url.startsWith("https"))
-      ) {
+      if (tabs[0] && tabs[0].id) {
         chrome.tabs.sendMessage(
           tabs[0].id,
           {
@@ -892,9 +891,7 @@ class PopupManager {
         this.debouncedSave();
 
         if (isAutomatic) {
-          debug.log("Auto-detected currency:", detectedCurrency);
         } else {
-          debug.log("Manually detected currency:", detectedCurrency);
         }
       } else if (detectedCurrency === this.baseCurrency) {
         statusElement.textContent = `Already using detected currency: ${detectedCurrency}`;
@@ -1040,7 +1037,7 @@ class PopupManager {
     this.renderCurrencyItems(); // Re-render to update sorting
   }
 
-  saveSettings() {
+  async saveSettings() {
     const settings = {
       selectedCurrencies: Array.from(this.selectedCurrencies),
       favoriteCurrencies: Array.from(this.favoriteCurrencies),
@@ -1052,37 +1049,51 @@ class PopupManager {
       theme: this.theme,
     };
 
+    // Save to chrome storage
     chrome.storage.sync.set(settings, () => {
-      debug.log("Settings saved:", settings);
+      // Settings saved
+    });
 
-      // Update only the active tab
+    // Send update to active tab using reliable message bus
+    try {
+      debug.log("Sending settings to content script:", {
+        selectedCurrencies: Array.from(this.selectedCurrencies),
+      });
+
+      const response = await this.messageBus.sendToActiveTab(
+        {
+          action: "updateSettings",
+          selectedCurrencies: Array.from(this.selectedCurrencies),
+          favoriteCurrencies: Array.from(this.favoriteCurrencies),
+          disabledUrls: this.disabledUrls,
+          baseCurrency: this.baseCurrency,
+          appearance: this.appearance,
+          extensionEnabled: this.extensionEnabled,
+          btcDenomination: this.btcDenomination || "btc",
+        },
+        {
+          maxRetries: 3,
+          needsAck: true,
+        }
+      );
+    } catch (error) {
+      debug.error("Failed to send settings update:", error);
+      // Fall back to old method for backward compatibility
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        if (
-          tabs[0] &&
-          tabs[0].url &&
-          (tabs[0].url.startsWith("http") || tabs[0].url.startsWith("https"))
-        ) {
-          chrome.tabs.sendMessage(
-            tabs[0].id,
-            {
-              action: "updateSettings",
-              selectedCurrencies: Array.from(this.selectedCurrencies),
-              favoriteCurrencies: Array.from(this.favoriteCurrencies),
-              disabledUrls: this.disabledUrls,
-              baseCurrency: this.baseCurrency,
-              appearance: this.appearance,
-              extensionEnabled: this.extensionEnabled,
-              btcDenomination: this.btcDenomination || "btc",
-            },
-            () => {
-              if (chrome.runtime.lastError) {
-                // Silent fail
-              }
-            }
-          );
+        if (tabs[0]?.id) {
+          chrome.tabs.sendMessage(tabs[0].id, {
+            action: "updateSettings",
+            selectedCurrencies: Array.from(this.selectedCurrencies),
+            favoriteCurrencies: Array.from(this.favoriteCurrencies),
+            disabledUrls: this.disabledUrls,
+            baseCurrency: this.baseCurrency,
+            appearance: this.appearance,
+            extensionEnabled: this.extensionEnabled,
+            btcDenomination: this.btcDenomination || "btc",
+          });
         }
       });
-    });
+    }
   }
 
   convertCurrency(amount, fromCurrency, toCurrency) {

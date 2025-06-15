@@ -570,3 +570,87 @@ export const COUNTRY_CURRENCY_MAP = {
   EC: "USD",
   PA: "USD",
 };
+
+// Currencies that don't use decimal places
+export const NO_DECIMAL_CURRENCIES = ["JPY", "KRW", "IDR", "VND"];
+
+// Storage keys for settings
+export const STORAGE_KEYS = [
+  "baseCurrency",
+  "selectedCurrencies",
+  "favoriteCurrencies",
+  "disabledUrls",
+  "appearance",
+  "extensionEnabled",
+  "btcDenomination",
+  "exchangeRates",
+  "lastUpdated",
+];
+
+// CSS classes used by the extension
+export const EXTENSION_CLASSES = {
+  wrapper: "price-wrapper",
+  underline: "cc-style-underline",
+  border: "cc-style-border",
+  background: "cc-style-background",
+  tooltip: "currency-tooltip",
+  error: "cc-error-warning",
+};
+
+// Meta tag selectors for currency detection
+export const CURRENCY_META_SELECTORS = [
+  'meta[property="og:price:currency"]',
+  'meta[property="product:price:currency"]',
+  'meta[itemprop="priceCurrency"]',
+  'meta[name="currency"]',
+  'meta[property="twitter:data1"]',
+];
+
+// Currency detection patterns for page text
+export const PAGE_CURRENCY_PATTERNS = [
+  /currency[:\s]+([A-Z]{3})/i,
+  /prices?\s+(?:are\s+)?(?:in|shown|displayed)\s+([A-Z]{3})/i,
+  /\(([A-Z]{3})\)\s*prices?/i,
+  /all\s+prices?\s+(?:are\s+)?(?:in|shown|displayed)?\s*([A-Z]{3})/i,
+];
+
+// Multi-character currency symbols mapping
+export const MULTI_CHAR_CURRENCY_SYMBOLS = {
+  C$: "CAD",
+  CA$: "CAD",
+  CAD$: "CAD",
+  A$: "AUD",
+  AU$: "AUD",
+  AUD$: "AUD",
+  NZ$: "NZD",
+  S$: "SGD",
+  SG$: "SGD",
+  SGD$: "SGD",
+  HK$: "HKD",
+  HKD$: "HKD",
+  NT$: "TWD",
+  TWD$: "TWD",
+  R$: "BRL",
+  BRL$: "BRL",
+  Mex$: "MXN",
+  MX$: "MXN",
+  MXN$: "MXN",
+  CLP$: "CLP",
+  AR$: "ARS",
+  ARS$: "ARS",
+  COL$: "COP",
+  COP$: "COP",
+  U$S: "USD",
+  US$: "USD",
+  USD$: "USD",
+};
+
+// Symbols that can represent multiple currencies
+export const MULTI_CURRENCY_SYMBOLS = {
+  $: ["USD", "CAD", "AUD", "NZD", "SGD", "HKD", "MXN", "ARS", "CLP", "COP"],
+  kr: ["SEK", "NOK", "DKK", "ISK"],
+  "₹": ["INR"],
+  "¥": ["JPY", "CNY"],
+  "£": ["GBP"],
+  R: ["ZAR", "BRL"],
+};
