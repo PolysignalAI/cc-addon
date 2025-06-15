@@ -92,14 +92,17 @@ jobs:
       
       - name: Create Release
         id: create_release
-        uses: actions/create-release@v1
+        uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Currency Converter v${{ env.VERSION }}
+          name: Currency Converter v${{ env.VERSION }}
           draft: false
           prerelease: false
+          files: |
+            ./chrome-extension/currency-converter-chrome-${{ env.VERSION }}.zip
+            ./firefox-extension/currency-converter-firefox-${{ env.VERSION }}.zip
+            ./website-package/currency-converter-website-${{ env.VERSION }}.zip
           body: |
             ## Currency Converter v${{ env.VERSION }}
             
@@ -125,35 +128,6 @@ jobs:
             ### What's New
             Please see the [commit history](https://github.com/${{ github.repository }}/commits/${{ github.ref }}) for changes.
       
-      - name: Upload Chrome Extension to Release
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./chrome-extension/currency-converter-chrome-${{ env.VERSION }}.zip
-          asset_name: currency-converter-chrome-${{ env.VERSION }}.zip
-          asset_content_type: application/zip
-      
-      - name: Upload Firefox Extension to Release
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./firefox-extension/currency-converter-firefox-${{ env.VERSION }}.zip
-          asset_name: currency-converter-firefox-${{ env.VERSION }}.zip
-          asset_content_type: application/zip
-      
-      - name: Upload Website Package to Release
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./website-package/currency-converter-website-${{ env.VERSION }}.zip
-          asset_name: currency-converter-website-${{ env.VERSION }}.zip
-          asset_content_type: application/zip
 
   deploy-website:
     needs: release
