@@ -229,22 +229,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             const themeToggle = document.getElementById('theme-toggle');
             if (themeToggle) {
               const rect = themeToggle.getBoundingClientRect();
-              console.log('Theme toggle position:', {
-                top: rect.top,
-                left: rect.left,
-                right: rect.right,
-                bottom: rect.bottom,
-                width: rect.width,
-                height: rect.height,
-                centerX: rect.left + rect.width / 2,
-                centerY: rect.top + rect.height / 2
-              });
               
-              // Also log the iframe dimensions for reference
-              console.log('Iframe dimensions:', {
-                width: window.innerWidth,
-                height: window.innerHeight
-              });
             }
             // Add warning banner for Crypto settings tab
             const settingsTabs = document.querySelectorAll('.settings-tab-button');
@@ -531,8 +516,8 @@ function updateTooltipCurrencies() {
     let html = `
             <div class="cc-tooltip-header">
               <div class="cc-tooltip-amount">${fromCurrency} ${amount.toFixed(
-      2
-    )}</div>
+                2
+              )}</div>
               <div class="cc-tooltip-label">Converts to:</div>
             </div>
             <div class="cc-tooltip-items">
@@ -604,8 +589,8 @@ function updateTooltipCurrencies() {
                 <div class="cc-tooltip-item">
                   <span class="cc-tooltip-currency">${currency}</span>
                   <span class="cc-tooltip-value">${symbol}${
-          symbol ? " " : ""
-        }${formatted}</span>
+                    symbol ? " " : ""
+                  }${formatted}</span>
                 </div>
               `;
       }
