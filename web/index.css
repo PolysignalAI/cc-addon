@@ -32,12 +32,15 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   line-height: 1.6;
   color: var(--text-dark);
   overflow-x: hidden;
   background-color: var(--bg-white);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 /* Hero Section */
@@ -84,11 +87,46 @@ body {
   z-index: 1;
 }
 
+.header-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 8px;
+  animation: fadeInUp 0.8s ease-out;
+}
+
+.site-logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 6px;
+}
+
 h1 {
   font-size: 3rem;
-  margin-bottom: 20px;
+  margin-bottom: 0;
   font-weight: 700;
-  animation: fadeInUp 0.8s ease-out;
+}
+
+.byline {
+  font-size: 1.3rem;
+  font-style: italic;
+  font-weight: 300;
+  opacity: 0.95;
+  margin-bottom: 10px;
+  margin-top: -5px;
+  animation: fadeInUp 0.8s ease-out 0.1s both;
+}
+
+.byline a {
+  color: white !important;
+  text-decoration: underline;
+  font-weight: 300;
+  transition: opacity 0.3s ease;
+}
+
+.byline a:hover {
+  opacity: 0.8;
 }
 
 .subtitle {
@@ -349,7 +387,9 @@ h1 {
   height: 10px;
   background: #ff5f57;
   border-radius: 50%;
-  box-shadow: 15px 0 0 #ffbd2e, 30px 0 0 #28ca42;
+  box-shadow:
+    15px 0 0 #ffbd2e,
+    30px 0 0 #28ca42;
 }
 
 /* Live Demo */
@@ -650,8 +690,22 @@ h1 {
 
 /* Responsive */
 @media (max-width: 768px) {
+  .header-container {
+    gap: 12px;
+  }
+
   h1 {
     font-size: 2rem;
+  }
+
+  .byline {
+    font-size: 1.1rem;
+    text-align: center;
+  }
+
+  .site-logo {
+    width: 36px;
+    height: 36px;
   }
 
   .cta-buttons {

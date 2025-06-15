@@ -200,6 +200,14 @@ document.addEventListener("DOMContentLoaded", async function () {
                   WLD: 0.385
                 }
               }),
+              onMessage: {
+                addListener: (callback) => {
+                  // Mock message listener - doesn't actually receive messages in demo
+                },
+                removeListener: (callback) => {
+                  // Mock remove listener
+                }
+              },
               lastError: null
             },
             tabs: {
