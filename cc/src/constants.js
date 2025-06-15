@@ -242,7 +242,15 @@ export const PRICE_PATTERNS = [
 ];
 
 // Debug flag - set to false in production
-export const DEBUG = false;
+export const DEBUG = true;
+
+// Debug wrapper functions
+export const debug = {
+  log: DEBUG ? console.log.bind(console) : () => {},
+  warn: DEBUG ? console.warn.bind(console) : () => {},
+  info: DEBUG ? console.info.bind(console) : () => {},
+  error: DEBUG ? console.error.bind(console) : () => {},
+};
 
 // Default settings
 export const DEFAULT_SETTINGS = {

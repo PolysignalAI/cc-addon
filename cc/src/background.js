@@ -7,6 +7,7 @@ import {
   SYMBOL_TO_COINGECKO_ID,
   API_ENDPOINTS,
   DEFAULT_SETTINGS,
+  debug,
 } from "./constants.js";
 
 class ExchangeRateService {
@@ -50,13 +51,13 @@ class ExchangeRateService {
         now - this.lastUpdateTime > this.updateIntervalMs;
 
       if (shouldSync) {
-        console.log("Exchange rates need syncing, starting sync...");
+        debug.log("Exchange rates need syncing, starting sync...");
         await this.syncRates();
       } else {
-        console.log("Exchange rates are up to date");
+        debug.log("Exchange rates are up to date");
       }
     } catch (error) {
-      console.error("Error checking sync status:", error);
+      debug.error("Error checking sync status:", error);
       await this.syncRates();
     }
   }
@@ -78,12 +79,12 @@ class ExchangeRateService {
 
   async syncRates() {
     if (this.syncInProgress) {
-      console.log("Sync already in progress, skipping...");
+      debug.log("Sync already in progress, skipping...");
       return;
     }
 
     this.syncInProgress = true;
-    console.log("Starting exchange rate sync...");
+    debug.log("Starting exchange rate sync...");
 
     try {
       // Fetch both fiat and crypto rates concurrently
@@ -106,9 +107,9 @@ class ExchangeRateService {
         errorState: false,
       });
 
-      console.log("Exchange rate sync completed successfully");
+      debug.log("Exchange rate sync completed successfully");
     } catch (error) {
-      console.error("Error syncing exchange rates:", error);
+      debug.error("Error syncing exchange rates:", error);
       await this.handleSyncError();
     } finally {
       this.syncInProgress = false;
@@ -117,7 +118,7 @@ class ExchangeRateService {
 
   async fetchFiatRates() {
     const url = `${API_ENDPOINTS.FRANKFURTER}?base=USD`;
-    console.log("Fetching fiat rates from:", url);
+    debug.log("Fetching fiat rates from:", url);
 
     const response = await fetch(url);
     if (!response.ok) {
@@ -125,7 +126,7 @@ class ExchangeRateService {
     }
 
     const data = await response.json();
-    console.log("Received fiat rates:", data);
+    debug.log("Received fiat rates:", data);
 
     // Add USD rate (base currency)
     const rates = { USD: 1, ...data.rates };
@@ -145,7 +146,7 @@ class ExchangeRateService {
     // Build CoinGecko API URL
     const coinIds = Object.keys(COINGECKO_ID_TO_SYMBOL).join(",");
     const url = `${API_ENDPOINTS.COINGECKO}?ids=${coinIds}&vs_currencies=usd`;
-    console.log("Fetching crypto rates from:", url);
+    debug.log("Fetching crypto rates from:", url);
 
     const response = await fetch(url);
     if (!response.ok) {
@@ -153,7 +154,7 @@ class ExchangeRateService {
     }
 
     const data = await response.json();
-    console.log("Received crypto rates:", data);
+    debug.log("Received crypto rates:", data);
 
     // Convert CoinGecko format to our format (USD -> crypto rate)
     // CoinGecko gives us 1 BTC = 45000 USD, we need 1 USD = X BTC
@@ -173,7 +174,7 @@ class ExchangeRateService {
 
     if (this.retryCount <= this.maxRetries) {
       const backoffMs = this.baseBackoffMs * Math.pow(2, this.retryCount - 1);
-      console.log(
+      debug.log(
         `Sync failed, retrying in ${backoffMs}ms (attempt ${this.retryCount}/${this.maxRetries})`
       );
 
@@ -181,7 +182,7 @@ class ExchangeRateService {
         this.syncRates();
       }, backoffMs);
     } else {
-      console.error("Max retries exceeded, setting error state");
+      debug.error("Max retries exceeded, setting error state");
       this.errorState = true;
       await chrome.storage.local.set({ errorState: true });
     }
@@ -288,4 +289,4 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
-console.log("Exchange rate background service initialized");
+debug.log("Exchange rate background service initialized");

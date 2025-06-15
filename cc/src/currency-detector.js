@@ -9,6 +9,7 @@ import {
   TIMEZONE_CURRENCY_MAP,
   COUNTRY_CURRENCY_MAP,
   DEFAULT_SETTINGS,
+  debug,
 } from "./constants.js";
 
 class CurrencyDetector {
@@ -103,7 +104,6 @@ class CurrencyDetector {
       detectedCurrency: this.detectBaseCurrency(),
     };
 
-    console.log("Currency Detection Info:", info);
     return info;
   }
 }

@@ -15,7 +15,7 @@ jobs:
 
       - name: Build the project
         run: |
-          node build.js
+          node build.js --production
 
       - name: Deploy to Server
         env:

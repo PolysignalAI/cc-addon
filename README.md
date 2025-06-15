@@ -103,11 +103,16 @@ docs/                  # Documentation
 # Install dependencies (required for formatting tools)
 npm install
 
-# Build for both browsers
+# Build for both browsers (development)
 node build.js
+
+# Build for production (forces DEBUG=false)
+node build.js --production
 ```
 
 The build script creates bundles for Chrome and Firefox based on the source in the `cc/` folder.
+
+**Note:** The `--production` flag automatically sets `DEBUG=false` in the source code to ensure no debug logs appear in production builds.
 
 ## Contributing
 

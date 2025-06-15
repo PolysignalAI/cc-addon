@@ -5,6 +5,7 @@ import {
   CRYPTO_SYMBOL_TO_NAME,
   CURRENCY_SYMBOLS,
   DEBUG,
+  debug,
 } from "./constants.js";
 
 // Build currency definitions from constants
@@ -891,10 +892,9 @@ class PopupManager {
         this.debouncedSave();
 
         if (isAutomatic) {
-          if (DEBUG) console.log("Auto-detected currency:", detectedCurrency);
+          debug.log("Auto-detected currency:", detectedCurrency);
         } else {
-          if (DEBUG)
-            console.log("Manually detected currency:", detectedCurrency);
+          debug.log("Manually detected currency:", detectedCurrency);
         }
       } else if (detectedCurrency === this.baseCurrency) {
         statusElement.textContent = `Already using detected currency: ${detectedCurrency}`;
@@ -906,7 +906,7 @@ class PopupManager {
         detectBtn.classList.remove("active");
       }
     } catch (error) {
-      if (DEBUG) console.error("Currency detection error:", error);
+      debug.error("Currency detection error:", error);
       statusElement.textContent = "Detection failed - using default";
       statusElement.className = "detect-error";
       detectBtn.classList.remove("active");
@@ -1053,7 +1053,7 @@ class PopupManager {
     };
 
     chrome.storage.sync.set(settings, () => {
-      if (DEBUG) console.log("Settings saved:", settings);
+      debug.log("Settings saved:", settings);
 
       // Update only the active tab
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -1161,7 +1161,7 @@ class PopupManager {
         setTimeout(() => this.updateLastUpdated(), 2000);
       }
     } catch (error) {
-      if (DEBUG) console.error("Failed to get last update time:", error);
+      debug.error("Failed to get last update time:", error);
       // Show loading state
       if (
         lastUpdatedElement &&

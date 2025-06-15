@@ -6,6 +6,7 @@ import {
   FIAT_CURRENCY_NAMES,
   PRICE_PATTERNS,
   SUPPORTED_CRYPTO_CURRENCIES,
+  debug,
 } from "./constants.js";
 
 // Don't run on extension pages
@@ -14,7 +15,7 @@ if (
   window.location.protocol === "moz-extension:" ||
   window.location.href.includes("extension://")
 ) {
-  console.log("Content script disabled on extension page");
+  debug.log("Content script disabled on extension page");
 } else {
   class PriceConverter {
     constructor() {
@@ -52,25 +53,12 @@ if (
       this.lastVisibilityCheck = Date.now();
       this.REFRESH_THRESHOLD = 5 * 60 * 1000; // 5 minutes
 
-      console.log("PriceConverter initialized");
+      debug.log("PriceConverter initialized");
       this.init();
       this.setupPeriodicCleanup();
     }
 
     async init() {
-      console.log("Starting initialization...");
-      console.log("Current URL:", window.location.href);
-
-      // Debug CSS loading order
-      console.log("Checking existing stylesheets before init:");
-      Array.from(document.styleSheets).forEach((sheet, index) => {
-        try {
-          console.log(`  Sheet ${index}:`, sheet.href || "inline style");
-        } catch (e) {
-          console.log(`  Sheet ${index}: (cross-origin or inaccessible)`);
-        }
-      });
-
       await this.loadSettings();
 
       // Inject dynamic styles after loading settings
@@ -79,19 +67,15 @@ if (
       // Check if extension is globally disabled
       if (!this.extensionEnabled) {
         this.isDisabled = true;
-        console.log("Extension globally disabled, stopping initialization");
+        debug.log("Extension globally disabled, stopping initialization");
         return;
       }
 
       // Check if extension is disabled for this URL
-      console.log("Checking if URL is disabled...");
-      console.log("Disabled URLs list:", this.disabledUrls);
       if (this.isUrlDisabled()) {
         this.isDisabled = true;
-        console.log("Extension disabled for this URL, stopping initialization");
         return;
       }
-      console.log("URL is not disabled, continuing...");
 
       await this.fetchExchangeRates();
 
@@ -118,8 +102,6 @@ if (
       // Process immediately if tab is visible
       if (!document.hidden) {
         this.performInitialScan();
-      } else {
-        console.log("Tab is hidden, waiting for visibility...");
       }
     }
 
@@ -127,15 +109,8 @@ if (
       const now = Date.now();
       const timeSinceLastCheck = now - this.lastVisibilityCheck;
 
-      console.log(
-        `Tab became visible. Time since last check: ${Math.floor(
-          timeSinceLastCheck / 1000
-        )}s`
-      );
-
       // Only refresh if it's been more than the threshold since last check
       if (timeSinceLastCheck < this.REFRESH_THRESHOLD) {
-        console.log("Recently checked, skipping refresh");
         return;
       }
 
@@ -150,20 +125,18 @@ if (
             this.performInitialScan();
           } else {
             // Tab was already processed, just update existing tooltips with new rates
-            console.log("Refreshing tooltips with latest exchange rates...");
             this.removeAllTooltips();
             this.scanAndConvert();
           }
         })
         .catch((error) => {
-          console.error("Failed to update rates on tab visibility:", error);
+          debug.error("Failed to update rates on tab visibility:", error);
         });
     }
 
     performInitialScan() {
       // Delay initial scan to let page fully render
       setTimeout(() => {
-        console.log("Starting price scanning...");
         this.detectPageCurrency();
         this.scanAndConvert();
         this.setupObserver();
@@ -172,8 +145,6 @@ if (
 
     // Smart Currency Detection Methods
     detectPageCurrency() {
-      console.log("Detecting page-wide currency...");
-
       // Fast, limited selectors only - avoid expensive attribute searches
       const indicators = [
         // Meta tags (very fast)
@@ -194,7 +165,6 @@ if (
             const currency = this.extractCurrencyFromElement(elements[i]);
             if (currency) {
               this.pageCurrency = currency;
-              console.log(`Found page currency: ${currency} from ${selector}`);
               return currency;
             }
           }
@@ -215,12 +185,10 @@ if (
         const match = textContent.match(pattern);
         if (match && this.isValidCurrency(match[1])) {
           this.pageCurrency = match[1];
-          console.log(`Found page currency from text: ${match[1]}`);
           return match[1];
         }
       }
 
-      console.log("No page-wide currency detected, using user default");
       return null;
     }
 
@@ -438,15 +406,6 @@ if (
               this.appearance = { ...this.appearance, ...result.appearance };
             }
 
-            console.log("Settings loaded:", {
-              baseCurrency: this.baseCurrency,
-              selectedCurrencies: this.selectedCurrencies,
-              disabledUrls: this.disabledUrls,
-              extensionEnabled: this.extensionEnabled,
-              appearance: this.appearance,
-              btcDenomination: this.btcDenomination,
-            });
-
             this.updateDynamicStyles();
             resolve();
           }
@@ -465,9 +424,7 @@ if (
         try {
           const regex = new RegExp(pattern);
           if (regex.test(currentUrl)) {
-            console.log(
-              `URL ${currentUrl} matches disabled pattern: ${pattern}`
-            );
+            debug.log(`URL ${currentUrl} matches disabled pattern: ${pattern}`);
             return true;
           }
         } catch (error) {
@@ -481,8 +438,6 @@ if (
 
     async fetchExchangeRates() {
       try {
-        console.log("Fetching exchange rates from background service...");
-
         const response = await new Promise((resolve, reject) => {
           chrome.runtime.sendMessage({ action: "getRates" }, (response) => {
             if (chrome.runtime.lastError) {
@@ -508,13 +463,6 @@ if (
             ...response.crypto,
           };
 
-          console.log("Exchange rates loaded:", {
-            fiatRates: Object.keys(response.fiat || {}).length,
-            cryptoRates: Object.keys(response.crypto || {}).length,
-            lastUpdate: new Date(response.lastUpdate),
-            errorState: response.errorState,
-          });
-
           // Hide error warning if rates are available
           if (Object.keys(this.exchangeRates).length > 0) {
             this.hideErrorWarning();
@@ -523,7 +471,7 @@ if (
           throw new Error("No response from background service");
         }
       } catch (error) {
-        console.error("Failed to fetch exchange rates:", error);
+        debug.error("Failed to fetch exchange rates:", error);
         this.showErrorWarning();
         throw error;
       }
@@ -532,7 +480,6 @@ if (
     setupMessageListener() {
       chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         if (request.action === "updateSettings") {
-          console.log("Received settings update:", request);
           this.selectedCurrencies = request.selectedCurrencies;
           this.baseCurrency = request.baseCurrency;
 
@@ -550,12 +497,10 @@ if (
             if (!this.extensionEnabled && wasEnabled) {
               this.isDisabled = true;
               this.removeAllTooltips();
-              console.log("Extension globally disabled");
               return;
             } else if (this.extensionEnabled && !wasEnabled) {
               // Extension was re-enabled globally
               this.isDisabled = false;
-              console.log("Extension globally re-enabled");
               // Continue to check other conditions and refresh below
             }
           }
@@ -570,12 +515,10 @@ if (
               // Extension should now be disabled
               this.isDisabled = true;
               this.removeAllTooltips();
-              console.log("Extension disabled for this URL");
               return;
             } else if (!shouldBeDisabled && this.isDisabled) {
               // Extension should now be enabled
               this.isDisabled = false;
-              console.log("Extension re-enabled for this URL");
               // Continue to refresh below
             }
           }
@@ -600,7 +543,6 @@ if (
             return;
           }
 
-          console.log("Received appearance update:", request.appearance);
           this.appearance = { ...this.appearance, ...request.appearance };
           this.updateDynamicStyles();
           this.updateExistingPriceElements();
@@ -722,8 +664,6 @@ if (
         return;
       this.isProcessing = true;
 
-      console.log("Scanning for prices with async processing...");
-
       // Clean up any orphaned tooltips before processing new content
       this.cleanupOrphanedTooltips();
 
@@ -786,14 +726,13 @@ if (
         nodesToProcess.push(node);
       }
 
-      console.log(
+      debug.log(
         `Found ${nodesToProcess.length} text nodes with potential prices`
       );
 
       // Process nodes in chunks to prevent page freezing
       processedCount += await this.processNodesInChunks(nodesToProcess);
 
-      console.log(`Processed ${processedCount} price elements`);
       this.isProcessing = false;
     }
 
@@ -905,7 +844,7 @@ if (
 
       // Find all elements that might contain currency symbols
       const allElements = document.querySelectorAll("span, div, p");
-      console.log(
+      debug.log(
         `scanSplitPrices: Found ${allElements.length} elements to check`
       );
 
@@ -978,7 +917,7 @@ if (
 
           const price = parseFloat(fullPriceText);
 
-          console.log(
+          debug.log(
             `Found split price: ${symbolText}${fullPriceText} = ${price}`
           );
 
@@ -1005,7 +944,6 @@ if (
 
               // Add hover listeners
               element.addEventListener("mouseenter", (e) => {
-                console.log("Mouse entered split price element");
                 e.stopPropagation();
 
                 if (tooltip._hideTimeout) {
@@ -1016,7 +954,6 @@ if (
               });
 
               element.addEventListener("mouseleave", (e) => {
-                console.log("Mouse left split price element");
                 e.stopPropagation();
                 this.hidePortalTooltip(tooltip);
               });
@@ -1265,7 +1202,6 @@ if (
 
         // Add hover listeners
         priceContainer.addEventListener("mouseenter", (e) => {
-          console.log("Mouse entered price container element");
           e.stopPropagation();
 
           if (tooltip._hideTimeout) {
@@ -1276,7 +1212,6 @@ if (
         });
 
         priceContainer.addEventListener("mouseleave", (e) => {
-          console.log("Mouse left price container element");
           e.stopPropagation();
           this.hidePortalTooltip(tooltip);
         });
@@ -1533,7 +1468,7 @@ if (
 
       // Fall back to page-wide currency detection
       if (this.pageCurrency) {
-        console.log(
+        debug.log(
           `Using page currency: ${this.pageCurrency} for price: ${priceText}`
         );
         return this.pageCurrency;
@@ -1543,15 +1478,9 @@ if (
       if (priceText.includes("$")) {
         // Check if base currency uses $ symbol
         if (this.currencyUsesSymbol(this.baseCurrency, "$")) {
-          console.log(
-            `Base currency ${this.baseCurrency} uses $, applying it to price: ${priceText}`
-          );
           return this.baseCurrency;
         }
         // Base currency doesn't use $, default to USD (most common $ currency)
-        console.log(
-          `Base currency ${this.baseCurrency} doesn't use $, defaulting to USD for price: ${priceText}`
-        );
         return "USD";
       }
 
@@ -1589,7 +1518,7 @@ if (
       }
 
       // Final fallback to user's base currency
-      console.log(
+      debug.log(
         `No currency detected for price: ${priceText}, using base currency: ${this.baseCurrency}`
       );
       return this.baseCurrency;
@@ -1611,7 +1540,6 @@ if (
 
       // Show/hide tooltip on hover with portal positioning
       span.addEventListener("mouseenter", (e) => {
-        console.log("Mouse entered price element:", originalText);
         // Stop propagation to prevent parent elements from also showing tooltips
         e.stopPropagation();
 
@@ -1624,7 +1552,6 @@ if (
       });
 
       span.addEventListener("mouseleave", (e) => {
-        console.log("Mouse left price element:", originalText);
         // Stop propagation to prevent parent elements from also hiding tooltips
         e.stopPropagation();
         this.hidePortalTooltip(tooltip);
@@ -1636,7 +1563,6 @@ if (
     createTooltip(price, fromCurrency) {
       // Don't create tooltip for invalid prices or when price is 0
       if (!price || isNaN(price) || price <= 0 || !isFinite(price)) {
-        console.log("Skipping tooltip creation for invalid price:", price);
         return null;
       }
 
@@ -1651,14 +1577,6 @@ if (
 
       // Calculate conversions synchronously
       const conversions = this.calculateConversions(price, fromCurrency);
-
-      console.log(
-        "Creating tooltip for:",
-        price,
-        fromCurrency,
-        "Conversions:",
-        conversions
-      );
 
       // Create header showing detected currency
       const fromSymbol = CURRENCY_SYMBOLS[fromCurrency] || "";
@@ -1903,7 +1821,7 @@ if (
       });
 
       if (orphanedTooltips.length > 0) {
-        console.log(
+        debug.log(
           `Found ${orphanedTooltips.length} orphaned tooltips, removing...`
         );
         orphanedTooltips.forEach((tooltip) => {
@@ -1921,8 +1839,6 @@ if (
     }
 
     removeAllTooltips() {
-      console.log("Removing all tooltips and cleaning up...");
-
       // Clean up any portal tooltips still in body - this catches orphaned tooltips
       this.cleanupOrphanedTooltips();
 
@@ -1983,14 +1899,11 @@ if (
         this.styleObserver.disconnect();
         this.styleObserver = null;
       }
-
-      console.log("Cleared all tooltips and wrappers");
     }
 
     // Inject dynamic styles into the page
     injectDynamicStyles() {
-      console.log("===== INJECTING DYNAMIC STYLES =====");
-      console.log(
+      debug.log(
         "Appearance settings:",
         JSON.stringify(this.appearance, null, 2)
       );
@@ -2000,7 +1913,6 @@ if (
         "currency-converter-dynamic-styles"
       );
       if (existingStyle) {
-        console.log("Removing existing dynamic styles");
         existingStyle.remove();
       }
 
@@ -2112,46 +2024,8 @@ if (
         document.documentElement.appendChild(style);
       }
 
-      console.log("Dynamic styles injected, verifying...");
-      console.log("Style element ID:", style.id);
-      console.log(
-        "Style content (first 200 chars):",
-        style.textContent.substring(0, 200)
-      );
-
       // Setup observer to ensure our styles stay last
       this.ensureStylePriority();
-
-      // Verify the style element exists in DOM
-      setTimeout(() => {
-        const verifyStyle = document.getElementById(
-          "currency-converter-dynamic-styles"
-        );
-        console.log("Style element found in DOM:", !!verifyStyle);
-        if (verifyStyle) {
-          console.log("Style element parent:", verifyStyle.parentNode?.tagName);
-          console.log(
-            "Style element is last child:",
-            verifyStyle === verifyStyle.parentNode.lastElementChild
-          );
-
-          // Check all stylesheets to see order
-          console.log("Current stylesheet order:");
-          Array.from(document.styleSheets).forEach((sheet, index) => {
-            try {
-              const isOurs =
-                sheet.ownerNode?.id === "currency-converter-dynamic-styles";
-              console.log(
-                `  Sheet ${index}: ${
-                  sheet.href || (isOurs ? "OUR DYNAMIC STYLES" : "inline style")
-                }`
-              );
-            } catch (e) {
-              console.log(`  Sheet ${index}: (cross-origin or inaccessible)`);
-            }
-          });
-        }
-      }, 100);
     }
 
     // Ensure our dynamic styles always stay last for highest priority
@@ -2169,7 +2043,6 @@ if (
           ourStyle.parentNode &&
           ourStyle !== ourStyle.parentNode.lastElementChild
         ) {
-          console.log("Dynamic styles were not last, moving to end...");
           ourStyle.parentNode.appendChild(ourStyle);
         }
       });
@@ -2185,7 +2058,6 @@ if (
 
     // Update dynamic styles when appearance changes
     updateDynamicStyles() {
-      console.log("Updating dynamic styles...");
       // Just re-inject the styles with new values
       this.injectDynamicStyles();
     }
@@ -2226,12 +2098,6 @@ if (
 
       // Log for debugging
       const computedStyle = window.getComputedStyle(element);
-      console.log("Applied styles to element:", {
-        text: element.textContent.substring(0, 30),
-        classes: element.className,
-        computedBackground: computedStyle.backgroundColor,
-        computedBorder: computedStyle.border || computedStyle.borderBottom,
-      });
     }
 
     // Apply portal-specific styles for body-positioned tooltips
@@ -2490,7 +2356,6 @@ if (
       this.positionPortalTooltip(targetElement, tooltip);
 
       // Show tooltip with forced opacity after positioning is complete
-      console.log("Showing tooltip");
 
       // Force show the tooltip immediately after positioning
       setTimeout(() => {
@@ -2512,19 +2377,6 @@ if (
 
         // Force a reflow to ensure styles are applied
         tooltip.offsetHeight;
-
-        console.log("Tooltip forced visible, computed styles:", {
-          opacity: getComputedStyle(tooltip).opacity,
-          visibility: getComputedStyle(tooltip).visibility,
-          display: getComputedStyle(tooltip).display,
-          position: getComputedStyle(tooltip).position,
-          left: getComputedStyle(tooltip).left,
-          top: getComputedStyle(tooltip).top,
-          transform: getComputedStyle(tooltip).transform,
-          zIndex: getComputedStyle(tooltip).zIndex,
-          width: getComputedStyle(tooltip).width,
-          height: getComputedStyle(tooltip).height,
-        });
       }, 50);
 
       // Update position on scroll/resize
@@ -2555,8 +2407,6 @@ if (
       const targetRect = targetElement.getBoundingClientRect();
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
-
-      console.log("Target rect:", targetRect);
 
       // First, ensure tooltip is added to DOM and properly styled
       if (!tooltip.parentNode) {
@@ -2590,31 +2440,6 @@ if (
             const listEl = tooltip.querySelector(".conversion-list");
             const items = tooltip.querySelectorAll(".conversion-item");
 
-            console.log("Debugging inner elements:", {
-              header: headerEl
-                ? {
-                    height: headerEl.offsetHeight,
-                    computedHeight: getComputedStyle(headerEl).height,
-                    display: getComputedStyle(headerEl).display,
-                  }
-                : "not found",
-              list: listEl
-                ? {
-                    height: listEl.offsetHeight,
-                    computedHeight: getComputedStyle(listEl).height,
-                    display: getComputedStyle(listEl).display,
-                    childCount: listEl.children.length,
-                  }
-                : "not found",
-              items: Array.from(items).map((item, i) => ({
-                index: i,
-                height: item.offsetHeight,
-                computedHeight: getComputedStyle(item).height,
-                display: getComputedStyle(item).display,
-                text: item.textContent,
-              })),
-            });
-
             // Calculate expected height manually
             let expectedHeight = 12 * 2; // padding
             if (headerEl) expectedHeight += headerEl.offsetHeight;
@@ -2631,19 +2456,6 @@ if (
             const tooltipWidth = tooltipRect.width;
             const tooltipHeight = tooltipRect.height;
 
-            console.log("Tooltip measurements:", {
-              width: tooltipWidth,
-              height: tooltipHeight,
-              expectedHeight: expectedHeight,
-              computedHeight: getComputedStyle(tooltip).height,
-              scrollHeight: tooltip.scrollHeight,
-              offsetHeight: tooltip.offsetHeight,
-              offsetWidth: tooltip.offsetWidth,
-              scrollWidth: tooltip.scrollWidth,
-              boundingRect: tooltipRect,
-            });
-            console.log("Tooltip content HTML:", tooltip.innerHTML);
-
             // Use multiple width measurements to ensure accuracy
             const widthMeasurements = {
               boundingRect: tooltipRect.width,
@@ -2651,7 +2463,6 @@ if (
               scrollWidth: tooltip.scrollWidth,
               computedWidth: parseFloat(getComputedStyle(tooltip).width),
             };
-            console.log("Width measurements:", widthMeasurements);
 
             // Use the most reliable width measurement
             let finalWidth = Math.max(
@@ -2685,11 +2496,6 @@ if (
               );
             }
 
-            console.log("Using dimensions:", {
-              width: finalWidth,
-              height: finalHeight,
-            });
-
             // Calculate exact midpoint of target element
             const targetMidpointX = targetRect.left + targetRect.width / 2;
             const tooltipMidpointX = finalWidth / 2;
@@ -2697,18 +2503,6 @@ if (
             // Position tooltip so its midpoint aligns with target's midpoint
             let left = targetMidpointX - tooltipMidpointX;
             let top = targetRect.top - finalHeight - 12; // 12px gap above target
-
-            console.log("Target element:", {
-              left: targetRect.left,
-              width: targetRect.width,
-              midpoint: targetMidpointX,
-            });
-            console.log("Tooltip calculations:", {
-              width: finalWidth,
-              halfWidth: tooltipMidpointX,
-              calculatedLeft: left,
-            });
-            console.log("Initial position:", { left, top });
 
             // Adjust horizontal position to stay in viewport
             const padding = 10;
@@ -2724,7 +2518,6 @@ if (
               // Position below target instead
               top = targetRect.bottom + 12;
               isPositionedBelow = true;
-              console.log("Positioning below target:", top);
             }
 
             // Add or remove the 'below' class based on position
@@ -2734,15 +2527,11 @@ if (
               tooltip.classList.remove("positioned-below");
             }
 
-            console.log("Final position:", { left, top });
-
             // Apply final position with !important to override any CSS
             tooltip.style.setProperty("left", `${left}px`, "important");
             tooltip.style.setProperty("top", `${top}px`, "important");
             tooltip.style.setProperty("transform", "none", "important"); // Force no transform
             tooltip.style.setProperty("margin", "0px", "important"); // Force no margin
-
-            console.log("Final position applied:", { left, top });
 
             // Force a reflow to ensure positioning is applied
             tooltip.offsetHeight;
@@ -2761,7 +2550,6 @@ if (
           !document.body.contains(targetElement) ||
           !targetElement.offsetParent
         ) {
-          console.log("Target element removed from DOM, hiding tooltip");
           this.hidePortalTooltip(tooltip);
         } else {
           this.positionPortalTooltip(targetElement, tooltip);
@@ -2828,16 +2616,13 @@ if (
       document.querySelectorAll(".currency-tooltip").forEach((tooltip) => {
         this.applyTooltipTheme(tooltip);
       });
-
-      console.log("Updated existing price elements with new appearance");
     }
 
     // Convert hex color to rgba
     hexToRgba(hex, alpha = 1) {
-      console.log("hexToRgba called with:", hex, "alpha:", alpha);
       const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
       if (!result) {
-        console.error("Failed to parse hex color:", hex);
+        debug.error("Failed to parse hex color:", hex);
         return `rgba(0, 123, 255, ${alpha})`;
       }
 
@@ -2846,7 +2631,6 @@ if (
       const b = parseInt(result[3], 16);
 
       const rgba = `rgba(${r}, ${g}, ${b}, ${alpha})`;
-      console.log("Converted", hex, "to", rgba);
       return rgba;
     }
 
@@ -2908,7 +2692,7 @@ if (
   }
 
   // Initialize the converter
-  console.log("Content script loaded");
+  debug.log("Content script loaded");
 
   const priceConverter = new PriceConverter();
 } // End of if statement that checks for extension pages
