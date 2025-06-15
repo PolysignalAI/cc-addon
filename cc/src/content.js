@@ -817,7 +817,7 @@ if (
           priceEl.getAttribute("content") || priceEl.textContent;
         const price = this.extractPrice(priceValue);
 
-        if (!price || price === 0) return;
+        if (!price || price <= 0) return;
 
         // Look for currency information
         let currency = null;
@@ -969,6 +969,12 @@ if (
 
           // Clean up the price text
           fullPriceText = fullPriceText.replace(/,/g, "").replace(/\.+/g, ".");
+          
+          // Ensure we actually have numeric content
+          if (!fullPriceText || !fullPriceText.match(/\d/)) {
+            continue;
+          }
+          
           const price = parseFloat(fullPriceText);
 
           console.log(
@@ -1304,13 +1310,19 @@ if (
           );
         }
 
-        // Create price element with tooltip
-        const priceElement = this.createPriceElement(
-          match.text,
-          match.price,
-          match.currency
-        );
-        wrapper.appendChild(priceElement);
+        // Only create price element if we have a valid price
+        if (match.price && match.price > 0) {
+          // Create price element with tooltip
+          const priceElement = this.createPriceElement(
+            match.text,
+            match.price,
+            match.currency
+          );
+          wrapper.appendChild(priceElement);
+        } else {
+          // Just add the text without making it interactive
+          wrapper.appendChild(document.createTextNode(match.text));
+        }
 
         lastIndex = match.end;
       });
@@ -1330,8 +1342,17 @@ if (
     extractPrice(priceText) {
       // Remove currency symbols and extract numeric value
       const cleanedText = priceText.replace(/[^0-9.,]/g, "");
+      
+      // If no digits found, return null
+      if (!cleanedText || !cleanedText.match(/\d/)) {
+        return null;
+      }
+      
       const normalizedText = cleanedText.replace(/,/g, "");
-      return parseFloat(normalizedText) || 0;
+      const price = parseFloat(normalizedText);
+      
+      // Return null for invalid prices
+      return (price && !isNaN(price) && price > 0) ? price : null;
     }
 
     // Helper function to get currencies that use a specific symbol
@@ -1475,6 +1496,12 @@ if (
     }
 
     createTooltip(price, fromCurrency) {
+      // Don't create tooltip for invalid prices or when price is 0
+      if (!price || isNaN(price) || price <= 0 || !isFinite(price)) {
+        console.log("Skipping tooltip creation for invalid price:", price);
+        return null;
+      }
+
       const tooltip = document.createElement("div");
       tooltip.className = "currency-tooltip portal-tooltip";
 
