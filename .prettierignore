@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+venv/
+
+# Build outputs
+chrome/
+firefox/
+web/addon/
+
+# Archives
+*.zip
+*.tgz
+
+# Minified files
+*.min.js
+*.min.css
+
+# Generated files
+build/
+dist/
+coverage/
+
+# Logs
+*.log

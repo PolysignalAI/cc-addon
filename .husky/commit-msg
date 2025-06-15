@@ -1,0 +1,20 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Simple commit message validation
+commit_regex='^(feat|fix|docs|style|refactor|test|chore|build|ci|perf|revert)(\(.+\))?: .{1,100}$'
+
+if ! grep -qE "$commit_regex" "$1"; then
+  echo "❌ Invalid commit message format!"
+  echo ""
+  echo "Valid format: <type>(<scope>): <subject>"
+  echo ""
+  echo "Types: feat, fix, docs, style, refactor, test, chore, build, ci, perf, revert"
+  echo ""
+  echo "Examples:"
+  echo "  feat: add currency conversion for Bitcoin"
+  echo "  fix(popup): resolve tooltip positioning issue"
+  echo "  docs: update deployment instructions"
+  echo ""
+  exit 1
+fi

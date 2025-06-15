@@ -1,4 +1,4 @@
-name: Deploy to Linode
+name: Deploy to Server
 
 on:
   push:
@@ -17,50 +17,36 @@ jobs:
         run: |
           node build.js
 
-      - name: Deploy to Linode
+      - name: Deploy to Server
         env:
-          LINODE_HOST: ${{ secrets.LINODE_HOST }}
-          LINODE_USER: ${{ secrets.LINODE_USER }}
-          LINODE_SSH_KEY: ${{ secrets.LINODE_SSH_KEY }}
-          LINODE_DEPLOY_PATH: ${{ secrets.LINODE_DEPLOY_PATH }}
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
+          SERVER_DEPLOY_PATH: ${{ secrets.SERVER_DEPLOY_PATH }}
         run: |
           # Setup SSH
           mkdir -p ~/.ssh
-          echo "$LINODE_SSH_KEY" > ~/.ssh/id_rsa
+          echo "$SERVER_SSH_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H $LINODE_HOST >> ~/.ssh/known_hosts
+          ssh-keyscan -H $SERVER_HOST >> ~/.ssh/known_hosts
 
           # Create deployment directory if it doesn't exist
-          ssh $LINODE_USER@$LINODE_HOST "mkdir -p $LINODE_DEPLOY_PATH"
+          ssh $SERVER_USER@$SERVER_HOST "mkdir -p $SERVER_DEPLOY_PATH"
 
-          # Copy website files
+          # Deploy website files from web folder
           rsync -avz --delete \
             --exclude '.git' \
             --exclude '.github' \
             --exclude 'node_modules' \
             --exclude '*.md' \
             --exclude '.gitignore' \
-            --exclude 'build.sh' \
-            --exclude 'cc/' \
-            --exclude 'chrome/' \
-            --exclude 'firefox/' \
-            index.html privacy.html \
-            $LINODE_USER@$LINODE_HOST:$LINODE_DEPLOY_PATH/
+            --exclude '.DS_Store' \
+            web/ \
+            $SERVER_USER@$SERVER_HOST:$SERVER_DEPLOY_PATH/
 
-          # Optional: Copy built extensions to a downloads directory
-          ssh $LINODE_USER@$LINODE_HOST "mkdir -p $LINODE_DEPLOY_PATH/downloads"
-
-          # Create zip files for extensions
-          cd chrome && zip -r ../chrome-extension.zip . && cd ..
-          cd firefox && zip -r ../firefox-extension.zip . && cd ..
-
-          # Upload extension zips
-          rsync -avz chrome-extension.zip firefox-extension.zip \
-            $LINODE_USER@$LINODE_HOST:$LINODE_DEPLOY_PATH/downloads/
-
-          # Optional: Set proper permissions
-          ssh $LINODE_USER@$LINODE_HOST "find $LINODE_DEPLOY_PATH -type f -exec chmod 644 {} \;"
-          ssh $LINODE_USER@$LINODE_HOST "find $LINODE_DEPLOY_PATH -type d -exec chmod 755 {} \;"
+          # Set proper permissions
+          ssh $SERVER_USER@$SERVER_HOST "find $SERVER_DEPLOY_PATH -type f -exec chmod 644 {} \;"
+          ssh $SERVER_USER@$SERVER_HOST "find $SERVER_DEPLOY_PATH -type d -exec chmod 755 {} \;"
 
       - name: Create GitHub Release
         uses: actions/create-release@v1
@@ -74,9 +60,11 @@ jobs:
           body: |
             ## Currency Converter v${{ github.ref_name }}
 
-            ### Downloads
-            - [Chrome Extension](https://${{ secrets.LINODE_HOST }}/downloads/chrome-extension.zip)
-            - [Firefox Extension](https://${{ secrets.LINODE_HOST }}/downloads/firefox-extension.zip)
-
             ### What's New
             Please see the commit history for changes.
+            
+            ### Installation
+            - **Chrome**: Visit the Chrome Web Store (coming soon)
+            - **Firefox**: Visit addons.mozilla.org (coming soon)
+            
+            For development/testing, use the full release workflow with 'v' prefix tags.

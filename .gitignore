@@ -2,11 +2,21 @@
 chrome
 firefox
 
+# Python virtual environment
 venv
+
+# Claude files
 CLAUDE.md
 .claude
 
 # exclude the build output but keep the addon folder
 web/addon/*
 !web/addon/.keep
+
+# Node modules
+node_modules/
+
+# npm debug logs
+npm-debug.log*
+package-lock.json
 
