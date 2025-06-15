@@ -15,7 +15,7 @@ A browser extension that automatically detects and converts prices on any webpag
 - **30+ Fiat Currencies**: USD, EUR, GBP, JPY, CAD, AUD, CHF, CNY, INR, and more
 - **20+ Cryptocurrencies**: BTC, ETH, USDT, BNB, SOL, ADA, DOGE, and more
 - **Bitcoin Denominations**: Display as BTC, Satoshis, or dynamic based on value
-- **Real-Time Exchange Rates**: Live rates from ExchangeRate-API and CoinGecko
+- **Real-Time Exchange Rates**: Live rates from Frankfurter.dev API and CoinGecko
 
 ### User Experience
 
@@ -120,7 +120,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Acknowledgments
 
-- Exchange rates provided by [ExchangeRate-API](https://exchangerate-api.com/) and [CoinGecko](https://coingecko.com/)
+- Exchange rates provided by [frankfurter.dev](https://frankfurter.dev/) and [CoinGecko](https://coingecko.com/)
 
 ## Contact
 

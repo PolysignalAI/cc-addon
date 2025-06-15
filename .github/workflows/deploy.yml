@@ -72,7 +72,7 @@ jobs:
         draft: false
         prerelease: false
         body: |
-          ## Universal Currency Converter v${{ github.ref_name }}
+          ## Currency Converter v${{ github.ref_name }}
           
           ### Downloads
           - [Chrome Extension](https://${{ secrets.LINODE_HOST }}/downloads/chrome-extension.zip)
