@@ -1,0 +1,680 @@
+// Demo state
+let demoState = {
+  theme: "light", // Start with light theme for the website
+  tooltipTheme: "dark",
+  highlightStyle: "underline",
+  borderColor: "#007bff",
+  borderHoverColor: "#218838",
+  backgroundColor: "#007bff",
+  backgroundHoverColor: "#218838",
+  borderThickness: 2,
+  borderRadius: 0,
+  borderStyle: "solid",
+  backgroundOpacity: 10,
+  selectedCurrencies: ["AUD", "EUR", "BTC"],
+  baseCurrency: "USD",
+};
+
+// Mock browser API globally
+window.browser = window.chrome = {
+  storage: {
+    sync: {
+      get: (keys, callback) => {
+        callback({
+          selectedCurrencies: demoState.selectedCurrencies,
+          baseCurrency: demoState.baseCurrency,
+          theme: demoState.theme,
+          appearance: demoState,
+          favoriteCurrencies: ["USD", "EUR"],
+          btcDenomination: "btc",
+          extensionEnabled: true,
+        });
+      },
+      set: (data, callback) => {
+        // Update demo state when settings change
+        if (data.appearance) Object.assign(demoState, data.appearance);
+        if (data.theme) demoState.theme = data.theme;
+        if (data.selectedCurrencies)
+          demoState.selectedCurrencies = data.selectedCurrencies;
+
+        // Update price demo
+        updatePriceStyles();
+        updateTooltipCurrencies();
+
+        if (callback) callback();
+      },
+    },
+  },
+  runtime: {
+    sendMessage: () =>
+      Promise.resolve({
+        lastUpdate: Date.now(),
+        fiat: {
+          USD: 1,
+          EUR: 0.925,
+          GBP: 0.796,
+          JPY: 149.85,
+          CAD: 1.35,
+          AUD: 1.52,
+          CHF: 0.91,
+          CNY: 7.24,
+        },
+        crypto: {
+          BTC: 43250.0,
+          ETH: 2315.0,
+          BNB: 315.0,
+          XRP: 0.62,
+        },
+      }),
+    lastError: null,
+  },
+  tabs: {
+    query: (opts, callback) => callback([]),
+    sendMessage: () => {},
+  },
+};
+
+// Wait for DOM to be ready
+document.addEventListener("DOMContentLoaded", async function () {
+  const iframe = document.getElementById("extension-demo-frame");
+
+  // Load all necessary files
+  const [cssResponse, detectorResponse, htmlResponse, jsResponse] =
+    await Promise.all([
+      fetch("addon/src/popup.css"),
+      fetch("addon/src/currency-detector.js"),
+      fetch("addon/src/popup.html"),
+      fetch("addon/src/popup.js"),
+    ]);
+
+  const [css, detectorScript, html, popupScript] = await Promise.all([
+    cssResponse.text(),
+    detectorResponse.text(),
+    htmlResponse.text(),
+    jsResponse.text(),
+  ]);
+
+  // Extract body content from HTML
+  const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+  const bodyContent = bodyMatch ? bodyMatch[1] : "";
+
+  // Create the iframe content by building it piece by piece
+  const iframeDoc = document.implementation.createHTMLDocument();
+
+  // Add CSS
+  const styleEl = iframeDoc.createElement("style");
+  styleEl.textContent = css;
+  iframeDoc.head.appendChild(styleEl);
+
+  // Add body content
+  iframeDoc.body.innerHTML = bodyContent;
+
+  // Add scripts
+  const scriptEl = iframeDoc.createElement("script");
+  scriptEl.textContent = `
+          // Mock browser APIs
+          window.chrome = window.browser = {
+            storage: {
+              sync: {
+                get: (keys, callback) => {
+                  callback({
+                    selectedCurrencies: ${JSON.stringify(
+                      demoState.selectedCurrencies
+                    )},
+                    baseCurrency: "${demoState.baseCurrency}",
+                    theme: "${demoState.theme}",
+                    appearance: ${JSON.stringify(demoState)},
+                    favoriteCurrencies: ["AUD", "EUR", "USD", "SGD", "SEK"],
+                    btcDenomination: "btc",
+                    extensionEnabled: true
+                  });
+                },
+                set: (data, callback) => {
+                  // Update parent demo state
+                  window.parent.postMessage({
+                    type: 'updateDemoState',
+                    data: data
+                  }, '*');
+                  if (callback) callback();
+                }
+              }
+            },
+            runtime: {
+              sendMessage: () => Promise.resolve({
+                lastUpdate: Date.now(),
+                fiat: {
+                  USD: 1,
+                  EUR: 0.925,
+                  GBP: 0.796,
+                  JPY: 149.85,
+                  CAD: 1.35,
+                  AUD: 1.52,
+                  CHF: 0.91,
+                  CNY: 7.24,
+                  INR: 83.25,
+                  KRW: 1318.50,
+                  MXN: 17.85,
+                  BRL: 4.98,
+                  SGD: 1.35,
+                  HKD: 7.83,
+                  NZD: 1.64,
+                  SEK: 10.48,
+                  NOK: 10.65,
+                  DKK: 6.89,
+                  PLN: 4.01,
+                  CZK: 22.45,
+                  HUF: 354.20,
+                  RON: 4.59,
+                  BGN: 1.81,
+                  IDR: 15632.0,
+                  PHP: 56.25,
+                  MYR: 4.48,
+                  THB: 34.85,
+                  TRY: 32.15,
+                  ILS: 3.72,
+                  ZAR: 18.45,
+                  ISK: 137.50
+                },
+                crypto: {
+                  BTC: 0.0000231,
+                  BTC_SATS: 0.0000231,
+                  ETH: 0.000432,
+                  BNB: 0.00317,
+                  XRP: 1.613,
+                  SOL: 0.00445,
+                  DOGE: 3.125,
+                  TRX: 25.64,
+                  ADA: 1.563,
+                  BCH: 0.00198,
+                  XLM: 2.632,
+                  LTC: 0.00893,
+                  DOT: 0.143,
+                  XMR: 0.00485,
+                  PEPE: 41666.67,
+                  AAVE: 0.00625,
+                  PI: 0.03125,
+                  CRO: 10.526,
+                  TRUMP: 0.0833,
+                  VET: 31.25,
+                  RENDER: 0.179,
+                  WLD: 0.385
+                }
+              }),
+              lastError: null
+            },
+            tabs: {
+              query: (opts, callback) => callback([]),
+              sendMessage: () => {}
+            }
+          };
+        `;
+  iframeDoc.body.appendChild(scriptEl);
+
+  // Add detector script
+  const detectorScriptEl = iframeDoc.createElement("script");
+  detectorScriptEl.textContent = detectorScript;
+  iframeDoc.body.appendChild(detectorScriptEl);
+
+  // Add popup script
+  const popupScriptEl = iframeDoc.createElement("script");
+  popupScriptEl.textContent = popupScript;
+  iframeDoc.body.appendChild(popupScriptEl);
+
+  // Add demo restrictions script
+  const demoRestrictionsEl = iframeDoc.createElement("script");
+  demoRestrictionsEl.textContent = `
+          // Add demo restrictions after DOM is ready
+          setTimeout(() => {
+            // Debug: Log theme toggle button position
+            const themeToggle = document.getElementById('theme-toggle');
+            if (themeToggle) {
+              const rect = themeToggle.getBoundingClientRect();
+              console.log('Theme toggle position:', {
+                top: rect.top,
+                left: rect.left,
+                right: rect.right,
+                bottom: rect.bottom,
+                width: rect.width,
+                height: rect.height,
+                centerX: rect.left + rect.width / 2,
+                centerY: rect.top + rect.height / 2
+              });
+              
+              // Also log the iframe dimensions for reference
+              console.log('Iframe dimensions:', {
+                width: window.innerWidth,
+                height: window.innerHeight
+              });
+            }
+            // Add warning banner for Crypto settings tab
+            const settingsTabs = document.querySelectorAll('.settings-tab-button');
+            settingsTabs.forEach(tab => {
+              if (tab.textContent.includes('Crypto')) {
+                tab.addEventListener('click', () => {
+                  setTimeout(() => {
+                    const cryptoSettings = document.getElementById('crypto-settings');
+                    if (cryptoSettings && !document.getElementById('demo-warning-crypto')) {
+                      const warning = document.createElement('div');
+                      warning.id = 'demo-warning-crypto';
+                      warning.className = 'demo-warning';
+                      warning.innerHTML = '<span>⚠️ Disabled for demo</span>';
+                      cryptoSettings.insertBefore(warning, cryptoSettings.firstChild);
+                      
+                      // Disable all radio buttons and inputs
+                      const inputs = cryptoSettings.querySelectorAll('input, button');
+                      inputs.forEach(input => {
+                        input.disabled = true;
+                        input.style.opacity = '0.5';
+                        input.style.cursor = 'not-allowed';
+                      });
+                      
+                      // Disable labels too
+                      const labels = cryptoSettings.querySelectorAll('label');
+                      labels.forEach(label => {
+                        label.style.opacity = '0.5';
+                        label.style.cursor = 'not-allowed';
+                      });
+                    }
+                  }, 50);
+                });
+              }
+            });
+            
+            // Add warning banner for Disabled URLs settings
+            settingsTabs.forEach(tab => {
+              if (tab.textContent.includes('Disabled URLs')) {
+                tab.addEventListener('click', () => {
+                  setTimeout(() => {
+                    const disabledUrlsSettings = document.getElementById('disabled-urls-settings');
+                    if (disabledUrlsSettings && !document.getElementById('demo-warning-urls')) {
+                      const warning = document.createElement('div');
+                      warning.id = 'demo-warning-urls';
+                      warning.className = 'demo-warning';
+                      warning.innerHTML = '<span>⚠️ Disabled for demo</span>';
+                      disabledUrlsSettings.insertBefore(warning, disabledUrlsSettings.firstChild);
+                      
+                      // Disable all inputs and buttons
+                      const inputs = disabledUrlsSettings.querySelectorAll('input, button');
+                      inputs.forEach(input => {
+                        input.disabled = true;
+                        input.style.opacity = '0.5';
+                        input.style.cursor = 'not-allowed';
+                      });
+                      
+                      // Make the whole content area look disabled
+                      const urlsList = document.getElementById('disabled-urls-list');
+                      if (urlsList) {
+                        urlsList.style.opacity = '0.5';
+                        urlsList.style.pointerEvents = 'none';
+                      }
+                    }
+                  }, 50);
+                });
+              }
+            });
+          }, 500);
+        `;
+  iframeDoc.body.appendChild(demoRestrictionsEl);
+
+  // Add demo warning styles
+  const demoStyleEl = iframeDoc.createElement("style");
+  demoStyleEl.textContent = `
+          .demo-warning {
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            padding: 10px 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-size: 13px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+          }
+          
+          .demo-warning span {
+            font-weight: 500;
+          }
+          
+          /* Dark theme support for demo warning */
+          [data-theme="dark"] .demo-warning {
+            background: #3a3a2a;
+            border-color: #5a5a3a;
+            color: #ffc107;
+          }
+          
+          /* Disabled state styling */
+          .currency-item[disabled],
+          input[disabled],
+          button[disabled] {
+            cursor: not-allowed !important;
+          }
+        `;
+  iframeDoc.head.appendChild(demoStyleEl);
+
+  // Convert to HTML string
+  const iframeContent = "<!DOCTYPE html>" + iframeDoc.documentElement.outerHTML;
+
+  // Write to iframe
+  iframe.srcdoc = iframeContent;
+
+  // Listen for messages from iframe
+  window.addEventListener("message", (event) => {
+    if (event.data.type === "updateDemoState") {
+      // Update demo state when settings change
+      if (event.data.data.appearance)
+        Object.assign(demoState, event.data.data.appearance);
+      if (event.data.data.theme) {
+        demoState.theme = event.data.data.theme;
+        // Update the main page theme when extension theme changes
+        document.documentElement.setAttribute("data-theme", demoState.theme);
+        // Hide the arrow after first interaction
+        const arrow = document.querySelector(".arrow-container");
+        if (arrow && !arrow.classList.contains("hidden")) {
+          arrow.classList.add("hidden");
+        }
+      }
+      if (event.data.data.selectedCurrencies)
+        demoState.selectedCurrencies = event.data.data.selectedCurrencies;
+
+      // Update price demo
+      updatePriceStyles();
+      updateTooltipCurrencies();
+    }
+  });
+
+  // Set initial theme
+  document.documentElement.setAttribute("data-theme", demoState.theme);
+
+  // Hide top arrow on any interaction with the iframe
+  iframe.addEventListener("load", () => {
+    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+    iframeDoc.addEventListener("click", () => {
+      const topArrow = document.querySelector(".arrow-container-top");
+      if (topArrow && !topArrow.classList.contains("hidden")) {
+        topArrow.classList.add("hidden");
+      }
+    });
+  });
+});
+
+function updatePriceStyles() {
+  const priceItems = document.querySelectorAll(".price-item");
+  const tooltips = document.querySelectorAll(".cc-tooltip");
+
+  priceItems.forEach((item, index) => {
+    // Reset styles
+    item.style.border = "";
+    item.style.borderBottom = "";
+    item.style.background = "";
+    item.style.borderRadius = "";
+
+    // Apply highlight style
+    if (demoState.highlightStyle === "underline") {
+      item.style.borderBottom = `${demoState.borderThickness}px ${demoState.borderStyle} ${demoState.borderColor}`;
+      item.style.background = hexToRgba(
+        demoState.backgroundColor,
+        demoState.backgroundOpacity / 100
+      );
+    } else if (demoState.highlightStyle === "border") {
+      item.style.border = `${demoState.borderThickness}px ${demoState.borderStyle} ${demoState.borderColor}`;
+      item.style.background = hexToRgba(
+        demoState.backgroundColor,
+        demoState.backgroundOpacity / 100
+      );
+    } else if (demoState.highlightStyle === "background") {
+      item.style.background = hexToRgba(
+        demoState.backgroundColor,
+        demoState.backgroundOpacity / 100
+      );
+    }
+
+    item.style.borderRadius = demoState.borderRadius + "px";
+  });
+
+  // Update tooltip theme
+  tooltips.forEach((tooltip) => {
+    tooltip.className = `cc-tooltip ${demoState.tooltipTheme}`;
+  });
+}
+
+function updateTooltipCurrencies() {
+  // Update tooltip content based on selected currencies
+  const rates = {
+    // Fiat rates (how many units of currency per USD)
+    USD: 1,
+    EUR: 0.925,
+    GBP: 0.796,
+    JPY: 149.85,
+    CAD: 1.35,
+    AUD: 1.52,
+    CHF: 0.91,
+    CNY: 7.24,
+    INR: 83.25,
+    KRW: 1318.5,
+    MXN: 17.85,
+    BRL: 4.98,
+    SGD: 1.35,
+    HKD: 7.83,
+    NZD: 1.64,
+    SEK: 10.48,
+    NOK: 10.65,
+    DKK: 6.89,
+    PLN: 4.01,
+    // Crypto rates (how many crypto units per USD)
+    BTC: 0.0000231,
+    ETH: 0.000432,
+    BNB: 0.00317,
+    XRP: 1.613,
+    SOL: 0.00445,
+    DOGE: 3.125,
+    ADA: 1.563,
+    LTC: 0.00893,
+    DOT: 0.143,
+    XMR: 0.00485,
+    AAVE: 0.00625,
+    CRO: 10.526,
+    PEPE: 41666.67,
+    TRUMP: 0.0833,
+    VET: 31.25,
+    RENDER: 0.179,
+    WLD: 0.385,
+  };
+
+  const symbols = {
+    USD: "$",
+    EUR: "€",
+    GBP: "£",
+    JPY: "¥",
+    CAD: "C$",
+    AUD: "A$",
+    CHF: "Fr",
+    CNY: "¥",
+    INR: "₹",
+    KRW: "₩",
+    MXN: "$",
+    BRL: "R$",
+    SGD: "S$",
+    HKD: "HK$",
+    NZD: "NZ$",
+    SEK: "kr",
+    NOK: "kr",
+    DKK: "kr",
+    PLN: "zł",
+    BTC: "₿",
+    ETH: "Ξ",
+    BNB: "",
+    XRP: "",
+    SOL: "",
+    DOGE: "Ð",
+    ADA: "₳",
+    LTC: "Ł",
+    DOT: "",
+    XMR: "",
+    AAVE: "",
+    CRO: "",
+    PEPE: "",
+    TRUMP: "",
+    VET: "",
+    RENDER: "",
+    WLD: "",
+  };
+
+  document.querySelectorAll(".price-item").forEach((item, index) => {
+    const tooltip = item.querySelector(".cc-tooltip");
+    const amount = parseFloat(item.dataset.amount);
+    const fromCurrency = item.dataset.currency;
+
+    // Build tooltip header
+    let html = `
+            <div class="cc-tooltip-header">
+              <div class="cc-tooltip-amount">${fromCurrency} ${amount.toFixed(
+      2
+    )}</div>
+              <div class="cc-tooltip-label">Converts to:</div>
+            </div>
+            <div class="cc-tooltip-items">
+          `;
+
+    demoState.selectedCurrencies.forEach((currency) => {
+      if (currency !== fromCurrency) {
+        let converted;
+
+        // Check if it's crypto
+        const isCrypto = [
+          "BTC",
+          "ETH",
+          "BNB",
+          "XRP",
+          "SOL",
+          "DOGE",
+          "ADA",
+          "LTC",
+          "DOT",
+          "XMR",
+          "AAVE",
+          "CRO",
+          "PEPE",
+          "TRUMP",
+          "VET",
+          "RENDER",
+          "WLD",
+        ].includes(currency);
+
+        if (isCrypto) {
+          // For crypto: rates are already in "units per USD" format
+          if (fromCurrency === "USD") {
+            // Direct conversion: USD amount * crypto units per USD
+            converted = amount * rates[currency];
+          } else {
+            // Convert to USD first, then to crypto
+            const usdAmount = amount / rates[fromCurrency];
+            converted = usdAmount * rates[currency];
+          }
+        } else {
+          // For fiat: standard conversion
+          const fromRate = rates[fromCurrency] || 1;
+          const toRate = rates[currency] || 1;
+          converted = amount * (toRate / fromRate);
+        }
+
+        const symbol = symbols[currency] || "";
+        let formatted;
+
+        if (currency === "JPY" || currency === "KRW" || currency === "IDR") {
+          formatted = Math.round(converted).toLocaleString();
+        } else if (isCrypto) {
+          // Format crypto based on value
+          if (converted < 0.00001) {
+            formatted = converted.toExponential(2);
+          } else if (converted < 0.01) {
+            formatted = converted.toFixed(6);
+          } else if (converted < 1) {
+            formatted = converted.toFixed(4);
+          } else {
+            formatted = converted.toFixed(2);
+          }
+        } else {
+          formatted = converted.toFixed(2);
+        }
+
+        html += `
+                <div class="cc-tooltip-item">
+                  <span class="cc-tooltip-currency">${currency}</span>
+                  <span class="cc-tooltip-value">${symbol}${
+          symbol ? " " : ""
+        }${formatted}</span>
+                </div>
+              `;
+      }
+    });
+
+    html += "</div>";
+    tooltip.innerHTML = html;
+  });
+}
+
+function hexToRgba(hex, alpha) {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result
+    ? `rgba(${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(
+        result[3],
+        16
+      )}, ${alpha})`
+    : hex;
+}
+
+// Price hover effects
+document.querySelectorAll(".price-item").forEach((item, index) => {
+  const tooltip = item.querySelector(".cc-tooltip");
+
+  item.addEventListener("mouseenter", function () {
+    tooltip.classList.add("show");
+
+    // Apply hover styles
+    if (demoState.highlightStyle === "underline") {
+      this.style.borderBottomColor = demoState.borderHoverColor;
+      this.style.background = hexToRgba(
+        demoState.backgroundHoverColor,
+        demoState.backgroundOpacity / 100
+      );
+    } else if (demoState.highlightStyle === "border") {
+      this.style.borderColor = demoState.borderHoverColor;
+      this.style.background = hexToRgba(
+        demoState.backgroundHoverColor,
+        demoState.backgroundOpacity / 100
+      );
+    } else if (demoState.highlightStyle === "background") {
+      this.style.background = hexToRgba(
+        demoState.backgroundHoverColor,
+        demoState.backgroundOpacity / 100
+      );
+    }
+  });
+
+  item.addEventListener("mouseleave", function () {
+    tooltip.classList.remove("show");
+    updatePriceStyles(); // Reset to non-hover state
+  });
+});
+
+// Intersection Observer for fade-in animations
+const observer = new IntersectionObserver(
+  (entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("visible");
+      }
+    });
+  },
+  { threshold: 0.1 }
+);
+
+document.querySelectorAll(".fade-in").forEach((el) => {
+  observer.observe(el);
+});
+
+// Initialize styles
+updatePriceStyles();

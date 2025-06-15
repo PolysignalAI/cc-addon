@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      Currency Converter - Instant Currency Conversion on Any Website
+    </title>
+    <meta
+      name="description"
+      content="Convert prices on any webpage to your preferred currencies instantly. Support for 30+ fiat currencies and 20+ cryptocurrencies. Available for Chrome, Firefox and Edge."
+    />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Kalam:wght@400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="index.css" />
+  </head>
+  <body>
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="container">
+        <h1>
+          Currency Converter by
+          <div class="header-link">
+            <a href="https://polysignal.com">Polysignal</a>
+          </div>
+        </h1>
+        <p class="subtitle">
+          Convert prices on any webpage to your preferred currencies instantly
+        </p>
+        <div class="cta-buttons">
+          <a
+            href="https://chrome.google.com/webstore"
+            class="cta-button chrome"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 2.4c5.295 0 9.6 4.305 9.6 9.6s-4.305 9.6-9.6 9.6S2.4 17.295 2.4 12 6.705 2.4 12 2.4z"
+              />
+            </svg>
+            Add to Chrome
+          </a>
+          <a
+            href="https://addons.mozilla.org/firefox"
+            class="cta-button firefox"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 2.4c5.295 0 9.6 4.305 9.6 9.6s-4.305 9.6-9.6 9.6S2.4 17.295 2.4 12 6.705 2.4 12 2.4z"
+              />
+            </svg>
+            Add to Firefox
+          </a>
+        </div>
+        <p style="opacity: 0.8; animation: fadeInUp 0.8s ease-out 0.6s both">
+          30+ Fiat Currencies • 20+ Cryptocurrencies • Real-time Rates
+        </p>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+      <div class="container">
+        <div class="features-grid">
+          <div class="feature-card fade-in">
+            <div class="feature-icon">💱</div>
+            <h3 class="feature-title">Instant Conversion</h3>
+            <p class="feature-description">
+              Automatically detects and converts prices on any webpage. Just
+              hover over a price to see conversions in your selected currencies.
+            </p>
+          </div>
+          <div class="feature-card fade-in">
+            <div class="feature-icon">🎨</div>
+            <h3 class="feature-title">Customizable Styling</h3>
+            <p class="feature-description">
+              Choose how prices are highlighted with underline, border, or
+              background styles. Customize colors and appearance to match your
+              preferences.
+            </p>
+          </div>
+          <div class="feature-card fade-in">
+            <div class="feature-icon">🌍</div>
+            <h3 class="feature-title">Auto-Detect Currency</h3>
+            <p class="feature-description">
+              Automatically detects your local currency based on timezone.
+              Support for 30+ fiat currencies and 20+ popular cryptocurrencies.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Demo Section -->
+    <section class="demo-section">
+      <div class="container">
+        <h2 class="section-title">See It In Action</h2>
+        <p class="section-subtitle">Try our <b>interactive demo</b> below</p>
+
+        <div class="demo-container">
+          <div class="demo-text fade-in">
+            <h3>Powerful Features at Your Fingertips</h3>
+            <p>✓ Select your favorite currencies to display</p>
+            <p>✓ Choose between dark and light themes</p>
+            <p>✓ Customize highlight styles and colors</p>
+            <p>✓ Disable on specific websites</p>
+            <p>✓ Real-time exchange rates updated hourly</p>
+            <p>✓ Support for Bitcoin, Ethereum, and more</p>
+          </div>
+
+          <div class="demo-preview fade-in">
+            <div class="browser-frame">
+              <div class="arrow-container-top">
+                <div class="arrow-text-top">try me!</div>
+                <svg
+                  class="arrow-svg"
+                  viewBox="0 0 150 100"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M 30 10 Q 50 20, 70 30 T 90 50 Q 100 60, 105 80 L 100 75 M 105 80 L 102 73"
+                    stroke="#333"
+                    stroke-width="2"
+                    fill="none"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    style="
+                      stroke-dasharray: 200;
+                      stroke-dashoffset: 200;
+                      animation: drawArrow 1s ease-out forwards;
+                      animation-delay: 1s;
+                    "
+                  />
+                </svg>
+              </div>
+              <iframe
+                id="extension-demo-frame"
+                class="popup-demo"
+                style="
+                  width: 350px;
+                  height: 500px;
+                  border: none;
+                  border-radius: 0 0 10px 10px;
+                "
+                sandbox="allow-scripts allow-same-origin"
+              >
+              </iframe>
+              <div class="arrow-container">
+                <div class="arrow-text">toggle theme</div>
+                <svg
+                  class="arrow-svg"
+                  viewBox="0 0 150 100"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M 80 95 Q 70 70, 75 50 T 85 25 Q 90 15, 100 10 L 95 15 M 100 10 L 95 12"
+                    stroke="#333"
+                    stroke-width="2"
+                    fill="none"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    style="
+                      stroke-dasharray: 200;
+                      stroke-dashoffset: 200;
+                      animation: drawArrow 1s ease-out forwards;
+                      animation-delay: 1s;
+                    "
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Live Demo -->
+    <section class="live-demo">
+      <div class="container">
+        <h2 class="section-title">Try It Live</h2>
+        <p class="section-subtitle">
+          Hover over these prices to see the conversion tooltip example
+        </p>
+
+        <div class="price-examples">
+          <div
+            class="price-item"
+            id="demo-price-1"
+            data-currency="USD"
+            data-amount="99.99"
+          >
+            $99.99
+            <div class="cc-tooltip" id="tooltip-1">
+              <div class="cc-tooltip-item">
+                <span class="cc-tooltip-currency">EUR</span>
+                <span class="cc-tooltip-value">€92.45</span>
+              </div>
+              <div class="cc-tooltip-item">
+                <span class="cc-tooltip-currency">GBP</span>
+                <span class="cc-tooltip-value">£79.62</span>
+              </div>
+              <div class="cc-tooltip-item">
+                <span class="cc-tooltip-currency">JPY</span>
+                <span class="cc-tooltip-value">¥14,985</span>
+              </div>
+            </div>
+          </div>
+          <div
+            class="price-item"
+            id="demo-price-2"
+            data-currency="EUR"
+            data-amount="85.50"
+          >
+            €85.50
+            <div class="cc-tooltip" id="tooltip-2">
+              <div class="cc-tooltip-item">
+                <span class="cc-tooltip-currency">USD</span>
+                <span class="cc-tooltip-value">$92.34</span>
+              </div>
+              <div class="cc-tooltip-item">
+                <span class="cc-tooltip-currency">GBP</span>
+                <span class="cc-tooltip-value">£73.41</span>
+              </div>
+              <div class="cc-tooltip-item">
+                <span class="cc-tooltip-currency">JPY</span>
+                <span class="cc-tooltip-value">¥13,851</span>
+              </div>
+            </div>
+          </div>
+          <div
+            class="price-item"
+            id="demo-price-3"
+            data-currency="GBP"
+            data-amount="75.00"
+          >
+            £75.00
+            <div class="cc-tooltip" id="tooltip-3">
+              <div class="cc-tooltip-item">
+                <span class="cc-tooltip-currency">USD</span>
+                <span class="cc-tooltip-value">$94.12</span>
+              </div>
+              <div class="cc-tooltip-item">
+                <span class="cc-tooltip-currency">EUR</span>
+                <span class="cc-tooltip-value">€87.21</span>
+              </div>
+              <div class="cc-tooltip-item">
+                <span class="cc-tooltip-currency">JPY</span>
+                <span class="cc-tooltip-value">¥14,118</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Privacy Section -->
+    <section class="privacy-section">
+      <div class="container">
+        <h2 class="section-title">Your Privacy Matters</h2>
+        <p class="section-subtitle">Built with privacy as a core principle</p>
+
+        <div class="privacy-grid fade-in">
+          <div class="privacy-card">
+            <div class="privacy-icon">🔒</div>
+            <h3>100% Local Processing</h3>
+            <p>
+              All price detection and conversion happens directly in your
+              browser. Your browsing data never leaves your device.
+            </p>
+          </div>
+
+          <div class="privacy-card">
+            <div class="privacy-icon">📖</div>
+            <h3>Open Source</h3>
+            <p>
+              Our code is completely open source. Review it yourself on GitHub
+              to see exactly how it works. No hidden surprises.
+            </p>
+          </div>
+
+          <div class="privacy-card">
+            <div class="privacy-icon">🌐</div>
+            <h3>Public APIs Only</h3>
+            <p>
+              We only fetch exchange rates from public APIs. No user data is
+              sent - it's one-way communication for rates only.
+            </p>
+          </div>
+
+          <div class="privacy-card">
+            <div class="privacy-icon">🚫</div>
+            <h3>No Tracking</h3>
+            <p>
+              Zero analytics, no user tracking, no data collection. We don't
+              even know you're using it. Your privacy is absolute.
+            </p>
+          </div>
+        </div>
+
+        <div class="privacy-statement fade-in">
+          <p>
+            Unlike many browser extensions, we believe your browsing habits are
+            none of our business. The Currency Converter operates entirely
+            within your browser, reading web pages locally to detect prices. The
+            only network requests made are to fetch current exchange rates from
+            trusted public sources - and even these are cached to minimize
+            requests. Your personal data, browsing history, and preferences stay
+            exactly where they belong: with you.
+          </p>
+          <a href="privacy" class="privacy-link"
+            >Read our full Privacy Policy →</a
+          >
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact">
+      <div class="container">
+        <h2 class="section-title">Get In Touch</h2>
+        <p class="section-subtitle">
+          Have feedback or suggestions? We'd love to hear from you!
+        </p>
+
+        <form
+          class="contact-form fade-in"
+          action="https://formspree.io/f/YOUR_FORM_ID"
+          method="POST"
+        >
+          <div class="form-group">
+            <label for="name">Your Name</label>
+            <input type="text" id="name" name="name" required />
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email" required />
+          </div>
+
+          <div class="form-group">
+            <label for="message">Message</label>
+            <textarea
+              id="message"
+              name="message"
+              placeholder="Tell us what you think about the extension..."
+              required
+            ></textarea>
+          </div>
+
+          <button type="submit" class="submit-button">Send Message</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-links">
+          <a href="privacy.html">Privacy Policy</a>
+          <a href="https://github.com/yourusername/currency-converter"
+            >GitHub</a
+          >
+        </div>
+        <p class="footer-text">
+          © 2025 Polysignal Currency Converter. Made with ❤️ for the web.
+        </p>
+      </div>
+    </footer>
+
+    <!-- Include constants and popup scripts -->
+    <script src="index.js"></script>
+  </body>
+</html>

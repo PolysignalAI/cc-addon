@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "Currency Converter",
+  "version": "1.0.0",
+  "description": "Convert prices on any webpage to your preferred currencies",
+
+  "permissions": ["storage", "activeTab", "alarms"],
+
+  "host_permissions": [
+    "https://api.frankfurter.dev/*",
+    "https://api.coingecko.com/*"
+  ],
+
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+
+  "action": {
+    "default_popup": "src/popup.html",
+    "default_title": "Currency Converter"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content.js"],
+      "css": ["src/content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+
+  "background": {
+    "service_worker": "src/background.js"
+  }
+}
