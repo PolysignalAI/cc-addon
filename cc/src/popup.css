@@ -647,6 +647,16 @@ body {
   border-top: 1px solid var(--footer-divider-color);
 }
 
+/* Settings view footer links */
+#settings-view .footer-links {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 350px; /* Match popup width */
+  z-index: 10; /* Ensure it's above content */
+}
+
 .footer-links span {
   font-size: 9px;
 }
@@ -815,6 +825,11 @@ body {
 }
 
 /* Settings View */
+#settings-view {
+  position: relative;
+  padding-bottom: 20px; /* Space for footer links */
+}
+
 .settings-header {
   display: flex;
   align-items: center;
@@ -885,9 +900,10 @@ body {
 }
 
 .settings-content {
-  max-height: 500px;
+  max-height: calc(100% - 100px); /* Adjust based on header, tabs, and footer */
   overflow-y: auto;
   padding: 12px;
+  padding-bottom: 30px; /* Extra padding to ensure content doesn't go under footer */
 }
 
 .settings-section {

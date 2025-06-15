@@ -19,7 +19,7 @@ class ExchangeRateService {
     this.retryCount = 0;
     this.maxRetries = 3;
     this.baseBackoffMs = 1000;
-    this.updateIntervalMs = 60 * 60 * 1000; // 1 hour
+    this.updateIntervalMs = 5 * 60 * 1000; // 5 minutes
 
     this.init();
   }
@@ -62,10 +62,10 @@ class ExchangeRateService {
   }
 
   setupPeriodicUpdates() {
-    // Create alarm for hourly updates
+    // Create alarm for updates every 5 minutes
     chrome.alarms.create("syncExchangeRates", {
-      delayInMinutes: 60,
-      periodInMinutes: 60,
+      delayInMinutes: 5,
+      periodInMinutes: 5,
     });
 
     // Listen for alarm
