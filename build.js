@@ -1,8 +1,41 @@
 const fs = require("fs");
 const path = require("path");
 
-// Force DEBUG flag to false for production builds
-function setDebugFlagForProduction() {
+// Parse command line arguments
+const args = process.argv.slice(2);
+const debugMode = args.includes("--debug");
+const helpMode = args.includes("--help") || args.includes("-h");
+
+// Show help and exit if requested
+if (helpMode) {
+  console.log(`
+Currency Converter Extension Build Script
+
+Usage: node build.js [options]
+
+Options:
+  --debug     Build with debug logging enabled (development mode)
+  --help, -h  Show this help message and exit
+
+Examples:
+  node build.js           Build for production (debug logging disabled)
+  node build.js --debug   Build for development (debug logging enabled)
+
+Output:
+  Chrome extension:  ./chrome/
+  Firefox extension: ./firefox/
+  Web demo addon:    ./web/addon/
+
+Notes:
+  - Production builds disable all console.log statements for better performance
+  - Debug builds include all logging for development and troubleshooting
+  - The DEBUG flag in cc/src/constants.js is automatically set based on build mode
+`);
+  process.exit(0);
+}
+
+// Set DEBUG flag based on build mode
+function setDebugFlag(enableDebug) {
   const constantsPath = path.join(__dirname, "cc/src/constants.js");
   let constantsContent = fs.readFileSync(constantsPath, "utf8");
 
@@ -15,17 +48,15 @@ function setDebugFlagForProduction() {
     process.exit(1);
   }
 
-  if (debugMatch[1] === "true") {
+  const currentValue = debugMatch[1] === "true";
+  const newValue = enableDebug;
+
+  if (currentValue !== newValue) {
     constantsContent = constantsContent.replace(
-      /export\s+const\s+DEBUG\s*=\s*true/,
-      "export const DEBUG = false"
+      /export\s+const\s+DEBUG\s*=\s*(true|false)/,
+      `export const DEBUG = ${newValue}`
     );
     fs.writeFileSync(constantsPath, constantsContent);
-    console.log(
-      "⚠️ Production build: DEBUG flag was changed from true to false"
-    );
-  } else {
-    console.log("✓ DEBUG flag already set to false");
   }
 }
 
@@ -76,8 +107,6 @@ function readModule(modulePath) {
 
 // Bundle content script with all modules
 function bundleContent(outputDir) {
-  console.log("Bundling content.js with all modules...");
-
   // Read constants
   let constantsContent = readModule(
     path.join(__dirname, "cc/src/constants.js")
@@ -156,8 +185,6 @@ ${contentContent}`;
 
 // Bundle background script
 function bundleBackground(outputDir) {
-  console.log("Bundling background.js with required modules...");
-
   const constantsPath = path.join(__dirname, "cc/src/constants.js");
   const backgroundPath = path.join(__dirname, "cc/src/background.js");
 
@@ -335,8 +362,6 @@ ${currencyDetectorContent}`;
 
 // Bundle popup script
 function bundlePopup(outputDir) {
-  console.log("Bundling popup.js with required modules...");
-
   const popupPath = path.join(__dirname, "cc/src/popup.js");
   let popupContent = fs.readFileSync(popupPath, "utf8");
 
@@ -378,27 +403,17 @@ ${popupContent}`;
 // Main build function
 function build() {
   console.log(
-    "Building browser extension packages with modular architecture..."
+    `Building extension in ${debugMode ? "debug" : "production"} mode...`
   );
 
-  // Check if production build
-  const isProduction = process.argv.includes("--production");
-  if (isProduction) {
-    console.log("Production build mode enabled");
-    setDebugFlagForProduction();
-  }
+  // Set debug flag
+  setDebugFlag(debugMode);
 
-  // Clean existing build directories
-  console.log("Cleaning existing build directories...");
+  // Clean and create directories
   removeDir("chrome");
   removeDir("firefox");
-
-  // Create directories
   fs.mkdirSync("chrome/src", { recursive: true });
   fs.mkdirSync("firefox/src", { recursive: true });
-
-  // Copy static files (HTML, CSS, icons, etc)
-  console.log("Copying static files...");
 
   // Copy everything except src folder
   const ccFiles = fs.readdirSync("cc");
@@ -419,32 +434,27 @@ function build() {
     }
   }
 
-  // Handle manifests
-  console.log("Setting up manifests...");
+  // Copy manifests
   fs.copyFileSync("manifest-chrome.json", "chrome/manifest.json");
   fs.copyFileSync("manifest-firefox.json", "firefox/manifest.json");
 
-  // Bundle JavaScript files
-  console.log("Bundling JavaScript files...");
-
-  // Bundle for Chrome
+  // Bundle extensions
+  console.log("Bundling Chrome extension...");
   bundleContent("chrome");
   bundleBackground("chrome");
   bundleCurrencyDetector("chrome");
   bundlePopup("chrome");
-  console.log("✅ Chrome bundling complete!");
 
-  // Bundle for Firefox
+  console.log("Bundling Firefox extension...");
   bundleContent("firefox");
   bundleBackground("firefox");
   bundleCurrencyDetector("firefox");
   bundlePopup("firefox");
-  console.log("✅ Firefox bundling complete!");
 
   // Bundle for web if applicable
   const webAddonPath = path.join(__dirname, "web/addon");
   if (fs.existsSync(path.dirname(webAddonPath))) {
-    console.log("Copying and bundling for web demo...");
+    console.log("Bundling web demo...");
     if (!fs.existsSync(webAddonPath)) {
       fs.mkdirSync(webAddonPath, { recursive: true });
     }
@@ -474,12 +484,11 @@ function build() {
     bundleBackground(webAddonPath);
     bundleCurrencyDetector(webAddonPath);
     bundlePopup(webAddonPath);
-    console.log("✅ Web addon bundling complete!");
   }
 
-  console.log("\nBuild completed successfully!");
-  console.log("Chrome extension files are in: chrome/");
-  console.log("Firefox extension files are in: firefox/");
+  console.log(
+    `\n✅ Build complete (${debugMode ? "debug" : "production"} mode)`
+  );
 }
 
 // Run build
