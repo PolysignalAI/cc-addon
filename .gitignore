@@ -1,5 +1,12 @@
+# build outputs
 chrome
 firefox
+
 venv
 CLAUDE.md
 .claude
+
+# exclude the build output but keep the addon folder
+web/addon/*
+!web/addon/.keep
+

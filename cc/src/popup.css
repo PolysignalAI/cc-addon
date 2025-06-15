@@ -14,6 +14,7 @@
   --text-secondary: #666666;
   --text-tertiary: #999999;
   --popup-border-color: #e9ecef;
+  --footer-divider-color: #dfe3e7;
   --border-hover: #dee2e6;
   --shadow: rgba(0, 0, 0, 0.1);
 }
@@ -27,6 +28,7 @@
   --text-secondary: #cccccc;
   --text-tertiary: #999999;
   --popup-border-color: #444444;
+  --footer-divider-color: #3a3a3a;
   --border-hover: #555555;
   --shadow: rgba(0, 0, 0, 0.3);
   --hr-color: #444444;
@@ -584,6 +586,7 @@ body {
   left: 0;
   right: 0;
   padding: 8px 16px;
+  margin-bottom: 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -629,11 +632,46 @@ body {
   margin-right: -4px; /* Compensate for button padding to align with edge */
 }
 
+.footer-links {
+  position: absolute;
+  bottom: -19px;
+  height: 18px;
+  font-size: 9px;
+  padding-top: 2px !important;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 0px 0;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--footer-divider-color);
+}
+
+.footer-links span {
+  font-size: 9px;
+}
+
+.footer-links a {
+  color: var(--text-primary);
+  text-decoration: underline;
+  transition: color 0.2s;
+}
+
+.footer-links a:hover {
+  color: var(--text-primary);
+  text-decoration: underline;
+}
+
+.footer-links .separator {
+  margin: 0 6px;
+  color: var(--text-tertiary);
+}
+
 /* Currency List */
 .currency-list {
   flex: 1;
   overflow-y: auto;
-  margin-bottom: 40px; /* Space for footer */
+  margin-bottom: 60px; /* Space for footer with links */
 }
 
 #currency-items {
