@@ -92,7 +92,9 @@ export class StyleManager {
         text-decoration: none !important;
         display: inline-block;
         border-radius: ${borderRadius}px;
+        /* Use padding with negative margins to prevent layout shift */
         padding: ${paddingVertical}px ${paddingHorizontal}px;
+        margin: -${paddingVertical}px -${paddingHorizontal}px;
         overflow: hidden; /* Ensure underline doesn't extend past rounded corners */
       }
 

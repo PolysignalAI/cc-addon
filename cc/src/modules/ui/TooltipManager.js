@@ -241,6 +241,9 @@ export class TooltipManager {
     if (rect.top - tooltipRect.height - 10 < 0) {
       tooltip.style.top = rect.bottom + 10 + "px";
       tooltip.style.transform = "translateX(-50%)";
+      tooltip.classList.add("tooltip-below");
+    } else {
+      tooltip.classList.remove("tooltip-below");
     }
   }
 

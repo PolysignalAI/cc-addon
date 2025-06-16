@@ -32,9 +32,7 @@
   isolation: isolate !important;
   border: 1px solid var(--cc-tooltip-border, rgba(255, 255, 255, 0.1)) !important;
   opacity: 0 !important;
-  transition:
-    opacity 0.2s ease,
-    transform 0.2s ease !important;
+  transition: opacity 0.2s ease !important;
 }
 
 /* Tooltip visible state */
@@ -44,7 +42,7 @@
   /* Transform is set by JavaScript for positioning */
 }
 
-/* Arrow for tooltip */
+/* Arrow for tooltip - default bottom position */
 .currency-tooltip::after {
   content: "" !important;
   position: absolute !important;
@@ -53,6 +51,14 @@
   transform: translateX(-50%) !important;
   border: 6px solid transparent !important;
   border-top-color: var(--cc-tooltip-bg, rgba(0, 0, 0, 0.95)) !important;
+}
+
+/* Arrow when tooltip is positioned below element */
+.currency-tooltip.tooltip-below::after {
+  top: auto !important;
+  bottom: 100% !important;
+  border-top-color: transparent !important;
+  border-bottom-color: var(--cc-tooltip-bg, rgba(0, 0, 0, 0.95)) !important;
 }
 
 /* Tooltip content structure */

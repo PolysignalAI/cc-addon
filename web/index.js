@@ -98,15 +98,24 @@ document.addEventListener("DOMContentLoaded", async function () {
   const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
   let bodyContent = bodyMatch ? bodyMatch[1] : "";
 
+  // Debug: log original content
+  console.log(
+    "Script tags found:",
+    bodyContent.match(/<script[^>]*>.*?<\/script>/gs)
+  );
+
   // Remove the script tags since we'll add them differently
   bodyContent = bodyContent.replace(
-    /<script[^>]*src=["']currency-detector\.js["'][^>]*><\/script>/g,
+    /<script[^>]*src=["']currency-detector\.js["'][^>]*><\/script>/gi,
     ""
   );
   bodyContent = bodyContent.replace(
-    /<script[^>]*src=["']popup\.js["'][^>]*><\/script>/g,
+    /<script[^>]*src=["']popup\.js["'][^>]*><\/script>/gi,
     ""
   );
+
+  // Also remove any empty script tags that might cause issues
+  bodyContent = bodyContent.replace(/<script[^>]*><\/script>/gi, "");
 
   // Create the iframe content by building it piece by piece
   const iframeDoc = document.implementation.createHTMLDocument();
@@ -534,69 +543,71 @@ function updateTooltipCurrencies() {
     let html = '<div class="cc-tooltip-content">';
 
     // First add all non-base currencies
-    demoState.selectedCurrencies.forEach((currency) => {
-      if (currency !== fromCurrency) {
-        let converted;
+    const nonBaseCurrencies = demoState.selectedCurrencies.filter(
+      (currency) => currency !== fromCurrency
+    );
+    nonBaseCurrencies.forEach((currency) => {
+      let converted;
 
-        // Check if it's crypto
-        const isCrypto = [
-          "BTC",
-          "ETH",
-          "BNB",
-          "XRP",
-          "SOL",
-          "DOGE",
-          "ADA",
-          "LTC",
-          "DOT",
-          "XMR",
-          "AAVE",
-          "CRO",
-          "PEPE",
-          "TRUMP",
-          "VET",
-          "RENDER",
-          "WLD",
-        ].includes(currency);
+      // Check if it's crypto
+      const isCrypto = [
+        "BTC",
+        "ETH",
+        "BNB",
+        "XRP",
+        "SOL",
+        "DOGE",
+        "ADA",
+        "LTC",
+        "DOT",
+        "XMR",
+        "AAVE",
+        "CRO",
+        "PEPE",
+        "TRUMP",
+        "VET",
+        "RENDER",
+        "WLD",
+      ].includes(currency);
 
-        if (isCrypto) {
-          // For crypto: rates are already in "units per USD" format
-          if (fromCurrency === "USD") {
-            // Direct conversion: USD amount * crypto units per USD
-            converted = amount * rates[currency];
-          } else {
-            // Convert to USD first, then to crypto
-            const usdAmount = amount / rates[fromCurrency];
-            converted = usdAmount * rates[currency];
-          }
+      if (isCrypto) {
+        // For crypto: rates are already in "units per USD" format
+        if (fromCurrency === "USD") {
+          // Direct conversion: USD amount * crypto units per USD
+          converted = amount * rates[currency];
         } else {
-          // For fiat: standard conversion
-          const fromRate = rates[fromCurrency] || 1;
-          const toRate = rates[currency] || 1;
-          converted = amount * (toRate / fromRate);
+          // Convert to USD first, then to crypto
+          const usdAmount = amount / rates[fromCurrency];
+          converted = usdAmount * rates[currency];
         }
+      } else {
+        // For fiat: standard conversion
+        const fromRate = rates[fromCurrency] || 1;
+        const toRate = rates[currency] || 1;
+        converted = amount * (toRate / fromRate);
+      }
 
-        const symbol = symbols[currency] || "";
-        let formatted;
+      const symbol = symbols[currency] || "";
+      let formatted;
 
-        if (currency === "JPY" || currency === "KRW" || currency === "IDR") {
-          formatted = Math.round(converted).toLocaleString();
-        } else if (isCrypto) {
-          // Format crypto based on value
-          if (converted < 0.00001) {
-            formatted = converted.toExponential(2);
-          } else if (converted < 0.01) {
-            formatted = converted.toFixed(6);
-          } else if (converted < 1) {
-            formatted = converted.toFixed(4);
-          } else {
-            formatted = converted.toFixed(2);
-          }
+      if (currency === "JPY" || currency === "KRW" || currency === "IDR") {
+        formatted = Math.round(converted).toLocaleString();
+      } else if (isCrypto) {
+        // Format crypto based on value
+        if (converted < 0.00001) {
+          formatted = converted.toExponential(2);
+        } else if (converted < 0.01) {
+          formatted = converted.toFixed(6);
+        } else if (converted < 1) {
+          formatted = converted.toFixed(4);
         } else {
           formatted = converted.toFixed(2);
         }
+      } else {
+        formatted = converted.toFixed(2);
+      }
 
-        html += `
+      html += `
           <div class="cc-tooltip-item">
             <span class="cc-tooltip-currency">${currency}</span>
             <span class="cc-tooltip-value">${symbol}${
@@ -604,11 +615,10 @@ function updateTooltipCurrencies() {
             }${formatted}</span>
           </div>
         `;
-      }
     });
 
     // Add divider with "Converts to" text
-    if (demoState.selectedCurrencies.length > 1) {
+    if (nonBaseCurrencies.length > 0) {
       html += `
         <div class="tooltip-divider">
           <span class="tooltip-divider-text">Converts to</span>
@@ -694,3 +704,4 @@ document.querySelectorAll(".fade-in").forEach((el) => {
 
 // Initialize styles
 updatePriceStyles();
+updateTooltipCurrencies();
