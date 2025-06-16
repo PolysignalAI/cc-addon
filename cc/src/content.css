@@ -8,8 +8,8 @@
 .currency-tooltip {
   position: fixed !important;
   /* Position will be set by JavaScript */
-  background: rgba(0, 0, 0, 0.95) !important;
-  color: white !important;
+  background: var(--cc-tooltip-bg, rgba(0, 0, 0, 0.95)) !important;
+  color: var(--cc-tooltip-color, white) !important;
   padding: 10px 14px !important;
   border-radius: 8px !important;
   font-size: 13px !important;
@@ -20,14 +20,17 @@
   z-index: 2147483647 !important;
   display: none !important;
   margin-bottom: 8px !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+  box-shadow: var(
+    --cc-tooltip-shadow,
+    0 4px 20px rgba(0, 0, 0, 0.4)
+  ) !important;
   pointer-events: none !important;
   min-width: 180px !important;
   max-width: 280px !important;
   text-align: left !important;
   /* Ensure tooltip breaks out of any stacking context */
   isolation: isolate !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid var(--cc-tooltip-border, rgba(255, 255, 255, 0.1)) !important;
   opacity: 0 !important;
   transition:
     opacity 0.2s ease,
@@ -49,7 +52,7 @@
   left: 50% !important;
   transform: translateX(-50%) !important;
   border: 6px solid transparent !important;
-  border-top-color: rgba(0, 0, 0, 0.95) !important;
+  border-top-color: var(--cc-tooltip-bg, rgba(0, 0, 0, 0.95)) !important;
 }
 
 /* Tooltip content structure */
@@ -69,23 +72,23 @@
 
 .currency-item.base-currency {
   font-weight: 600 !important;
-  color: #4fc3f7 !important;
+  color: var(--cc-tooltip-base-color, #4fc3f7) !important;
 }
 
 .currency-code {
   font-size: 12px !important;
-  color: rgba(255, 255, 255, 0.8) !important;
+  color: var(--cc-tooltip-code-color, rgba(255, 255, 255, 0.8)) !important;
   min-width: 35px !important;
 }
 
 .currency-item.base-currency .currency-code {
-  color: #4fc3f7 !important;
+  color: var(--cc-tooltip-base-color, #4fc3f7) !important;
 }
 
 .currency-amount {
   font-weight: 500 !important;
   font-size: 13px !important;
-  color: #81c784 !important;
+  color: var(--cc-tooltip-amount-color, #81c784) !important;
   text-align: right !important;
 }
 
@@ -93,19 +96,19 @@
 .tooltip-header {
   margin-bottom: 8px !important;
   padding-bottom: 6px !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-bottom: 1px solid var(--cc-tooltip-divider, rgba(255, 255, 255, 0.15)) !important;
 }
 
 .detected-currency {
   font-weight: 600 !important;
   font-size: 14px !important;
-  color: #4fc3f7 !important;
+  color: var(--cc-tooltip-base-color, #4fc3f7) !important;
   margin-bottom: 2px !important;
 }
 
 .conversion-label {
   font-size: 11px !important;
-  color: rgba(255, 255, 255, 0.7) !important;
+  color: var(--cc-tooltip-code-color, rgba(255, 255, 255, 0.7)) !important;
   font-style: italic !important;
 }
 
@@ -131,14 +134,14 @@
 
 .currency-amount {
   font-weight: 600 !important;
-  color: #81c784 !important;
+  color: var(--cc-tooltip-amount-color, #81c784) !important;
   font-size: 13px !important;
   min-width: 80px !important;
 }
 
 .currency-name {
   font-size: 11px !important;
-  color: rgba(255, 255, 255, 0.65) !important;
+  color: var(--cc-tooltip-code-color, rgba(255, 255, 255, 0.65)) !important;
   text-align: right !important;
   max-width: 120px !important;
   overflow: hidden !important;

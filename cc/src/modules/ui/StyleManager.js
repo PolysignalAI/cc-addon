@@ -355,6 +355,46 @@ export class StyleManager {
       bgHoverColorRgba
     );
 
+    // Set tooltip theme variables
+    const tooltipTheme = this.appearance.tooltipTheme || "dark";
+    root.style.setProperty("--cc-tooltip-theme", tooltipTheme);
+    root.style.setProperty(
+      "--cc-tooltip-bg",
+      tooltipTheme === "dark"
+        ? "rgba(0, 0, 0, 0.95)"
+        : "rgba(255, 255, 255, 0.95)"
+    );
+    root.style.setProperty(
+      "--cc-tooltip-color",
+      tooltipTheme === "dark" ? "#ffffff" : "#1a1a1a"
+    );
+    root.style.setProperty(
+      "--cc-tooltip-border",
+      tooltipTheme === "dark" ? "rgba(255, 255, 255, 0.1)" : "#ddd"
+    );
+    root.style.setProperty(
+      "--cc-tooltip-shadow",
+      tooltipTheme === "dark"
+        ? "0 4px 20px rgba(0, 0, 0, 0.4)"
+        : "0 4px 12px rgba(0, 0, 0, 0.1)"
+    );
+    root.style.setProperty(
+      "--cc-tooltip-code-color",
+      tooltipTheme === "dark" ? "rgba(255, 255, 255, 0.8)" : "#666"
+    );
+    root.style.setProperty(
+      "--cc-tooltip-base-color",
+      tooltipTheme === "dark" ? "#4fc3f7" : "#0066cc"
+    );
+    root.style.setProperty(
+      "--cc-tooltip-amount-color",
+      tooltipTheme === "dark" ? "#81c784" : "#008844"
+    );
+    root.style.setProperty(
+      "--cc-tooltip-divider",
+      tooltipTheme === "dark" ? "rgba(255, 255, 255, 0.15)" : "#eee"
+    );
+
     debug.log("CSS variables set on document root:", {
       borderColor,
       borderHoverColor,
@@ -365,6 +405,7 @@ export class StyleManager {
       borderStyle,
       bgColorRgba,
       bgHoverColorRgba,
+      tooltipTheme,
     });
   }
 
