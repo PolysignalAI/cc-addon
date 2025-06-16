@@ -61,6 +61,7 @@ class PopupManager {
       tooltipTheme: "dark",
       paddingVertical: 1,
       paddingHorizontal: 4,
+      tooltipFontSize: 13,
     };
 
     // Theme
@@ -409,6 +410,18 @@ class PopupManager {
       this.debouncedSave();
     });
 
+    // Tooltip font size
+    document
+      .getElementById("tooltip-font-size")
+      .addEventListener("input", (e) => {
+        this.appearance.tooltipFontSize = parseInt(e.target.value);
+        document.querySelector(
+          "#tooltip-font-size + .slider-value"
+        ).textContent = `${e.target.value}px`;
+        this.updateAppearancePreview();
+        this.debouncedSave();
+      });
+
     // Reset button
     document
       .getElementById("reset-appearance")
@@ -690,6 +703,8 @@ class PopupManager {
     document.getElementById("border-style").value = this.appearance.borderStyle;
     document.getElementById("tooltip-theme").value =
       this.appearance.tooltipTheme;
+    document.getElementById("tooltip-font-size").value =
+      this.appearance.tooltipFontSize || 13;
 
     // Update slider value displays
     document.querySelector("#border-thickness + .slider-value").textContent =
@@ -703,6 +718,8 @@ class PopupManager {
       `${this.appearance.paddingVertical || 2}px`;
     document.querySelector("#padding-horizontal + .slider-value").textContent =
       `${this.appearance.paddingHorizontal || 4}px`;
+    document.querySelector("#tooltip-font-size + .slider-value").textContent =
+      `${this.appearance.tooltipFontSize || 13}px`;
   }
 
   updateAppearancePreview() {
@@ -900,6 +917,7 @@ class PopupManager {
       tooltipTheme: "dark",
       paddingVertical: 1,
       paddingHorizontal: 4,
+      tooltipFontSize: 13,
     };
 
     this.loadAppearanceSettings();

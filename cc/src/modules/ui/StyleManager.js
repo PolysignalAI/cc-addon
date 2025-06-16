@@ -381,19 +381,23 @@ export class StyleManager {
     );
     root.style.setProperty(
       "--cc-tooltip-code-color",
-      tooltipTheme === "dark" ? "rgba(255, 255, 255, 0.8)" : "#666"
+      tooltipTheme === "dark" ? "rgba(255, 255, 255, 0.6)" : "#666"
     );
     root.style.setProperty(
       "--cc-tooltip-base-color",
-      tooltipTheme === "dark" ? "#4fc3f7" : "#0066cc"
+      tooltipTheme === "dark" ? "#ffffff" : "#000000"
     );
     root.style.setProperty(
       "--cc-tooltip-amount-color",
-      tooltipTheme === "dark" ? "#81c784" : "#008844"
+      tooltipTheme === "dark" ? "#ffffff" : "#000000"
     );
     root.style.setProperty(
       "--cc-tooltip-divider",
       tooltipTheme === "dark" ? "rgba(255, 255, 255, 0.15)" : "#eee"
+    );
+    root.style.setProperty(
+      "--cc-tooltip-font-size",
+      `${this.appearance.tooltipFontSize || 13}px`
     );
 
     debug.log("CSS variables set on document root:", {

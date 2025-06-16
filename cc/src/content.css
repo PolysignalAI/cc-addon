@@ -12,7 +12,7 @@
   color: var(--cc-tooltip-color, white) !important;
   padding: 10px 14px !important;
   border-radius: 8px !important;
-  font-size: 13px !important;
+  font-size: var(--cc-tooltip-font-size, 13px) !important;
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
   font-weight: 500 !important;
@@ -72,27 +72,31 @@
 
 .currency-item.base-currency {
   font-weight: 600 !important;
-  color: var(--cc-tooltip-base-color, #4fc3f7) !important;
   border-bottom: none !important;
   padding-bottom: 0 !important;
   margin-bottom: 0 !important;
 }
 
 .currency-code {
-  font-size: 12px !important;
+  font-size: calc(var(--cc-tooltip-font-size, 13px) - 1px) !important;
   color: var(--cc-tooltip-code-color, rgba(255, 255, 255, 0.8)) !important;
   min-width: 35px !important;
 }
 
 .currency-item.base-currency .currency-code {
-  color: var(--cc-tooltip-base-color, #4fc3f7) !important;
+  color: var(--cc-tooltip-base-color, #ffffff) !important;
+  font-weight: 700 !important;
 }
 
 .currency-amount {
   font-weight: 500 !important;
-  font-size: 13px !important;
-  color: var(--cc-tooltip-amount-color, #81c784) !important;
+  font-size: var(--cc-tooltip-font-size, 13px) !important;
+  color: var(--cc-tooltip-amount-color, #ffffff) !important;
   text-align: right !important;
+}
+
+.currency-item.base-currency .currency-amount {
+  font-weight: 700 !important;
 }
 
 /* Enhanced Tooltip Structure */
@@ -133,13 +137,6 @@
 .conversion-item:hover {
   background: rgba(255, 255, 255, 0.08) !important;
   padding: 3px 4px !important;
-}
-
-.currency-amount {
-  font-weight: 600 !important;
-  color: var(--cc-tooltip-amount-color, #81c784) !important;
-  font-size: 13px !important;
-  min-width: 80px !important;
 }
 
 .currency-name {

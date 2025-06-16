@@ -87,11 +87,13 @@ export class TooltipManager {
     for (const conversion of otherConversions) {
       const { currency, amount, symbol, formatted } = conversion;
 
-      // Add space between symbol and amount
+      // Add space between symbol and amount only if symbol is different from currency code
+      const displayAmount =
+        symbol !== currency ? `${symbol} ${formatted}` : formatted;
       html += `
         <div class="currency-item">
           <span class="currency-code">${currency}</span>
-          <span class="currency-amount">${symbol} ${formatted}</span>
+          <span class="currency-amount">${displayAmount}</span>
         </div>
       `;
     }
@@ -108,10 +110,12 @@ export class TooltipManager {
     // Add base currency at the bottom
     if (baseConversion) {
       const { currency, amount, symbol, formatted } = baseConversion;
+      const displayAmount =
+        symbol !== currency ? `${symbol} ${formatted}` : formatted;
       html += `
         <div class="currency-item base-currency">
           <span class="currency-code">${currency}</span>
-          <span class="currency-amount">${symbol} ${formatted}</span>
+          <span class="currency-amount">${displayAmount}</span>
         </div>
       `;
     }

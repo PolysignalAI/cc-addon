@@ -94,9 +94,19 @@ document.addEventListener("DOMContentLoaded", async function () {
     jsResponse.text(),
   ]);
 
-  // Extract body content from HTML
+  // Extract body content from HTML and remove script tags
   const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-  const bodyContent = bodyMatch ? bodyMatch[1] : "";
+  let bodyContent = bodyMatch ? bodyMatch[1] : "";
+
+  // Remove the script tags since we'll add them differently
+  bodyContent = bodyContent.replace(
+    /<script[^>]*src=["']currency-detector\.js["'][^>]*><\/script>/g,
+    ""
+  );
+  bodyContent = bodyContent.replace(
+    /<script[^>]*src=["']popup\.js["'][^>]*><\/script>/g,
+    ""
+  );
 
   // Create the iframe content by building it piece by piece
   const iframeDoc = document.implementation.createHTMLDocument();
@@ -520,17 +530,10 @@ function updateTooltipCurrencies() {
     const amount = parseFloat(item.dataset.amount);
     const fromCurrency = item.dataset.currency;
 
-    // Build tooltip header
-    let html = `
-            <div class="cc-tooltip-header">
-              <div class="cc-tooltip-amount">${fromCurrency} ${amount.toFixed(
-                2
-              )}</div>
-              <div class="cc-tooltip-label">Converts to:</div>
-            </div>
-            <div class="cc-tooltip-items">
-          `;
+    // Build tooltip content with proper structure
+    let html = '<div class="cc-tooltip-content">';
 
+    // First add all non-base currencies
     demoState.selectedCurrencies.forEach((currency) => {
       if (currency !== fromCurrency) {
         let converted;
@@ -594,15 +597,35 @@ function updateTooltipCurrencies() {
         }
 
         html += `
-                <div class="cc-tooltip-item">
-                  <span class="cc-tooltip-currency">${currency}</span>
-                  <span class="cc-tooltip-value">${symbol}${
-                    symbol ? " " : ""
-                  }${formatted}</span>
-                </div>
-              `;
+          <div class="cc-tooltip-item">
+            <span class="cc-tooltip-currency">${currency}</span>
+            <span class="cc-tooltip-value">${symbol}${
+              symbol ? " " : ""
+            }${formatted}</span>
+          </div>
+        `;
       }
     });
+
+    // Add divider with "Converts to" text
+    if (demoState.selectedCurrencies.length > 1) {
+      html += `
+        <div class="tooltip-divider">
+          <span class="tooltip-divider-text">Converts to</span>
+        </div>
+      `;
+    }
+
+    // Add base currency at the bottom
+    const baseSymbol = symbols[fromCurrency] || "";
+    html += `
+      <div class="cc-tooltip-item base-currency">
+        <span class="cc-tooltip-currency">${fromCurrency}</span>
+        <span class="cc-tooltip-value">${baseSymbol}${
+          baseSymbol ? " " : ""
+        }${amount.toFixed(2)}</span>
+      </div>
+    `;
 
     html += "</div>";
     tooltip.innerHTML = html;
