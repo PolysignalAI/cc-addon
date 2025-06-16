@@ -119,8 +119,62 @@ document.addEventListener("DOMContentLoaded", async function () {
   styleEl.textContent = css;
   iframeDoc.head.appendChild(styleEl);
 
+  // Add additional scrollbar styling for the whole iframe document
+  const scrollbarStyle = iframeDoc.createElement("style");
+  scrollbarStyle.textContent = `
+    /* General scrollbar styling for the entire document */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: #f1f3f4;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: #c1c8cd;
+      border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: #a8b2ba;
+    }
+    
+    /* Dark theme scrollbar for the entire document */
+    [data-theme="dark"]::-webkit-scrollbar-track,
+    [data-theme="dark"] ::-webkit-scrollbar-track {
+      background: #1a1a1a;
+    }
+    
+    [data-theme="dark"]::-webkit-scrollbar-thumb,
+    [data-theme="dark"] ::-webkit-scrollbar-thumb {
+      background: #4a4a4a;
+      border-radius: 4px;
+    }
+    
+    [data-theme="dark"]::-webkit-scrollbar-thumb:hover,
+    [data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+      background: #5a5a5a;
+    }
+    
+    /* Firefox scrollbar support */
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: #c1c8cd #f1f3f4;
+    }
+    
+    [data-theme="dark"] * {
+      scrollbar-color: #4a4a4a #1a1a1a;
+    }
+  `;
+  iframeDoc.head.appendChild(scrollbarStyle);
+
   // Add body content
   iframeDoc.body.innerHTML = bodyContent;
+
+  // Set initial theme on the iframe document
+  iframeDoc.documentElement.setAttribute("data-theme", demoState.theme);
 
   // Add scripts
   const scriptEl = iframeDoc.createElement("script");

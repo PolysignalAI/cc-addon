@@ -1717,7 +1717,40 @@ hr {
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
 }
 
-/* Dark theme scrollbar */
+/* General scrollbar styling for the entire popup */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f3f4;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c8cd;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8b2ba;
+}
+
+/* Dark theme scrollbar for the entire popup */
+[data-theme="dark"] ::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: #4a4a4a;
+  border-radius: 4px;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: #5a5a5a;
+}
+
+/* Specific overrides for lists that need thinner scrollbars */
 [data-theme="dark"] .currency-list::-webkit-scrollbar-track,
 [data-theme="dark"] .settings-content::-webkit-scrollbar-track {
   background: var(--bg-secondary);
@@ -1732,4 +1765,14 @@ hr {
 [data-theme="dark"] .currency-list::-webkit-scrollbar-thumb:hover,
 [data-theme="dark"] .settings-content::-webkit-scrollbar-thumb:hover {
   background: #666;
+}
+
+/* Firefox scrollbar support */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #c1c8cd #f1f3f4;
+}
+
+[data-theme="dark"] * {
+  scrollbar-color: #4a4a4a #1a1a1a;
 }
