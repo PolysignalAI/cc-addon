@@ -62,12 +62,22 @@ RewriteRule ^(.+)\.html$ /$1 [R=301,L]
     Deny from all
 </FilesMatch>
 
-# Protect PHP files from direct access (except send-email.php)
+# Explicitly protect config files and environment files
+<FilesMatch "(^\.env|^config\.php|^config\.example\.php|composer\.json|composer\.lock)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Protect PHP files from direct access (except send-email-smtp.php and send-email-debug.php)
 <FilesMatch "\.php$">
     Order allow,deny
     Deny from all
 </FilesMatch>
-<Files "send-email.php">
+<Files "send-email-smtp.php">
+    Order allow,deny
+    Allow from all
+</Files>
+<Files "send-email-debug.php">
     Order allow,deny
     Allow from all
 </Files>

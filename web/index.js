@@ -768,7 +768,7 @@ if (contactForm) {
 
     try {
       const formData = new FormData(contactForm);
-      formData.append("g-recaptcha-response", recaptchaResponse);
+      // Don't append g-recaptcha-response - it's already in the form
 
       const response = await fetch(contactForm.action, {
         method: "POST",
