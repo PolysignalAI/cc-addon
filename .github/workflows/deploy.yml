@@ -68,13 +68,11 @@ jobs:
           ssh $SERVER_USER@$SERVER_HOST "cd $SERVER_DEPLOY_PATH && cp config.example.php config.php"
           
           # Create .env file with secrets on server
-          ssh $SERVER_USER@$SERVER_HOST "cat > $SERVER_DEPLOY_PATH/.env << 'EOF'
-CONTACT_EMAIL_TO=$CONTACT_EMAIL_TO
-GMAIL_USERNAME=$GMAIL_USERNAME
-GMAIL_APP_PASSWORD=$GMAIL_APP_PASSWORD
-RECAPTCHA_SITE_KEY=$RECAPTCHA_SITE_KEY
-RECAPTCHA_SECRET_KEY=$RECAPTCHA_SECRET_KEY
-EOF"
+          ssh $SERVER_USER@$SERVER_HOST "echo 'CONTACT_EMAIL_TO=${CONTACT_EMAIL_TO}' > $SERVER_DEPLOY_PATH/.env && \
+            echo 'GMAIL_USERNAME=${GMAIL_USERNAME}' >> $SERVER_DEPLOY_PATH/.env && \
+            echo 'GMAIL_APP_PASSWORD=${GMAIL_APP_PASSWORD}' >> $SERVER_DEPLOY_PATH/.env && \
+            echo 'RECAPTCHA_SITE_KEY=${RECAPTCHA_SITE_KEY}' >> $SERVER_DEPLOY_PATH/.env && \
+            echo 'RECAPTCHA_SECRET_KEY=${RECAPTCHA_SECRET_KEY}' >> $SERVER_DEPLOY_PATH/.env"
 
           # Run composer install on server
           ssh $SERVER_USER@$SERVER_HOST "cd $SERVER_DEPLOY_PATH && composer install --no-dev --optimize-autoloader"
