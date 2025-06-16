@@ -54,12 +54,12 @@ class PopupManager {
       borderHoverColor: "#218838",
       backgroundColor: "#007bff",
       backgroundHoverColor: "#218838",
-      borderThickness: 2,
-      borderRadius: 0,
+      borderThickness: 1,
+      borderRadius: 2,
       borderStyle: "solid",
       backgroundOpacity: 10,
       tooltipTheme: "dark",
-      paddingVertical: 2,
+      paddingVertical: 1,
       paddingHorizontal: 4,
     };
 
@@ -81,6 +81,7 @@ class PopupManager {
     this.renderCurrencyList();
     this.updateBaseDisplay();
     this.updateAppearancePreview();
+    this.updateBorderColorVisibility();
     this.autoDetectCurrencyOnFirstRun();
 
     // Update last updated time with retry mechanism
@@ -305,6 +306,7 @@ class PopupManager {
       .forEach((radio) => {
         radio.addEventListener("change", (e) => {
           this.appearance.highlightStyle = e.target.value;
+          this.updateBorderColorVisibility();
           this.updateAppearancePreview();
           this.debouncedSave();
         });
@@ -867,6 +869,23 @@ class PopupManager {
       : null;
   }
 
+  updateBorderColorVisibility() {
+    const borderColorRow = document.getElementById("border-color-row");
+    const borderHoverColorRow = document.getElementById(
+      "border-hover-color-row"
+    );
+
+    if (this.appearance.highlightStyle === "background") {
+      // Disable border color sections when background style is selected
+      borderColorRow?.classList.add("disabled");
+      borderHoverColorRow?.classList.add("disabled");
+    } else {
+      // Enable border color sections for underline and border styles
+      borderColorRow?.classList.remove("disabled");
+      borderHoverColorRow?.classList.remove("disabled");
+    }
+  }
+
   resetAppearance() {
     this.appearance = {
       highlightStyle: "underline",
@@ -874,17 +893,18 @@ class PopupManager {
       borderHoverColor: "#218838",
       backgroundColor: "#007bff",
       backgroundHoverColor: "#218838",
-      borderThickness: 2,
-      borderRadius: 0,
+      borderThickness: 1,
+      borderRadius: 2,
       borderStyle: "solid",
       backgroundOpacity: 10,
       tooltipTheme: "dark",
-      paddingVertical: 2,
+      paddingVertical: 1,
       paddingHorizontal: 4,
     };
 
     this.loadAppearanceSettings();
     this.updateAppearancePreview();
+    this.updateBorderColorVisibility();
     this.debouncedSave();
   }
 

@@ -1123,6 +1123,21 @@ input[type="color"] {
   box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
 }
 
+/* Disabled state for border color sections */
+.setting-row.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.setting-row.disabled label {
+  color: var(--text-tertiary);
+}
+
+.setting-row.disabled .color-preset {
+  cursor: not-allowed;
+  filter: grayscale(1);
+}
+
 /* Sliders */
 .slider-container {
   display: flex;
