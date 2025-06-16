@@ -794,6 +794,14 @@ body {
   padding: 8px 12px;
   border-bottom: 1px solid var(--popup-border-color);
   background: var(--bg-secondary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-input-wrapper {
+  position: relative;
+  flex: 1;
 }
 
 .filter-input {
@@ -835,6 +843,40 @@ body {
 .filter-clear:hover {
   background: var(--bg-hover);
   color: var(--text-primary);
+}
+
+/* Selected-only filter button */
+.filter-selected-only {
+  background: var(--bg-primary);
+  border: 1px solid var(--popup-border-color);
+  border-radius: 5px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.filter-selected-only:hover {
+  background: var(--bg-hover);
+  border-color: #007bff;
+  color: var(--text-primary);
+}
+
+.filter-selected-only.active {
+  background: #007bff;
+  border-color: #007bff;
+  color: white;
+}
+
+.filter-selected-only.active:hover {
+  background: #0056b3;
+  border-color: #0056b3;
 }
 
 /* Settings View */

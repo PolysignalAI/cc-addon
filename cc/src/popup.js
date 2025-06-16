@@ -42,6 +42,7 @@ class PopupManager {
     this.debounceTimer = null;
     this.currencyDetector = new CurrencyDetector();
     this.filterText = "";
+    this.filterSelectedOnly = false;
     this.extensionEnabled = true;
     this.btcDenomination = "btc";
     this.exchangeRates = {};
@@ -521,7 +522,14 @@ class PopupManager {
       currencies = CURRENCIES[this.currentTab];
     }
 
-    // Apply filter if there's filter text
+    // Apply selected-only filter if active
+    if (this.filterSelectedOnly) {
+      currencies = currencies.filter((currency) =>
+        this.selectedCurrencies.has(currency.code)
+      );
+    }
+
+    // Apply text filter if there's filter text
     if (this.filterText) {
       const filterLower = this.filterText.toLowerCase();
       currencies = currencies.filter(
@@ -630,6 +638,9 @@ class PopupManager {
     const filterContainer = document.createElement("div");
     filterContainer.className = "filter-container";
 
+    const filterInputWrapper = document.createElement("div");
+    filterInputWrapper.className = "filter-input-wrapper";
+
     const filterInput = document.createElement("input");
     filterInput.type = "text";
     filterInput.id = "currency-filter";
@@ -646,6 +657,13 @@ class PopupManager {
     // Show/hide clear button based on filter text
     clearButton.style.display = this.filterText ? "block" : "none";
 
+    // Add selected-only filter button
+    const selectedOnlyButton = document.createElement("button");
+    selectedOnlyButton.type = "button";
+    selectedOnlyButton.className = `filter-selected-only ${this.filterSelectedOnly ? "active" : ""}`;
+    selectedOnlyButton.innerHTML = "✓";
+    selectedOnlyButton.title = "Show selected currencies only";
+
     // Add event listeners
     filterInput.addEventListener("input", (e) => {
       this.filterText = e.target.value;
@@ -661,8 +679,17 @@ class PopupManager {
       filterInput.focus();
     });
 
-    filterContainer.appendChild(filterInput);
-    filterContainer.appendChild(clearButton);
+    selectedOnlyButton.addEventListener("click", () => {
+      this.filterSelectedOnly = !this.filterSelectedOnly;
+      selectedOnlyButton.classList.toggle("active", this.filterSelectedOnly);
+      this.renderCurrencyItems();
+    });
+
+    filterInputWrapper.appendChild(filterInput);
+    filterInputWrapper.appendChild(clearButton);
+
+    filterContainer.appendChild(filterInputWrapper);
+    filterContainer.appendChild(selectedOnlyButton);
     container.appendChild(filterContainer);
   }
 
