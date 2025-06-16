@@ -1219,12 +1219,16 @@ input[type="color"] {
 
 /* Preview */
 .preview-container {
-  position: relative;
   display: inline-block;
   padding: 20px;
   background: var(--bg-secondary);
   border-radius: 6px;
   border: 1px solid var(--popup-border-color);
+}
+
+.preview-wrapper {
+  position: relative;
+  display: inline-block;
 }
 
 .price-preview {
@@ -1288,7 +1292,8 @@ input[type="color"] {
   border-top-color: rgba(255, 255, 255, 1) !important;
 }
 
-.preview-container:hover .tooltip-preview {
+.price-preview:hover + .tooltip-preview,
+.tooltip-preview:hover {
   opacity: 1 !important;
 }
 

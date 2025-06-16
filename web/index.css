@@ -311,21 +311,35 @@ h1 {
 .arrow-container {
   position: absolute;
   bottom: -80px;
-  right: -10px; /* moved right 40px (from 30px to -10px) */
+  right: -10px;
   pointer-events: none;
   z-index: 10;
-  animation: fadeInUp 1s ease-out 0.5s both; /* changed from 2s to 0.5s */
+  animation: fadeInUp 1s ease-out 0.8s both; /* changed from 2s to 0.5s */
 }
 
 /* Top arrow pointing to demo */
 .arrow-container-top {
   position: absolute;
-  top: -65px; /* moved down 35px (from -120px to -85px) */
+  top: -65px;
   left: 50%;
   transform: translateX(-50%);
   pointer-events: none;
   z-index: 10;
   animation: fadeInDown 1s ease-out 0.5s both;
+}
+
+.arrow-container-mid {
+  position: absolute;
+  top: 49px;
+  left: -6%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 10;
+  animation: fadeInDown 1s ease-out 0.9s both;
+}
+
+#arrow-svg-mid {
+  transform: rotate(-300deg);
 }
 
 .arrow-svg {
@@ -335,8 +349,8 @@ h1 {
 
 .arrow-text {
   position: absolute;
-  bottom: -15px; /* moved down 10px (from -5px to -15px) */
-  right: -10px; /* moved right 60px (from 50px to -10px) */
+  bottom: -15px;
+  right: -10px;
   font-family: "Kalam", cursive;
   font-size: 18px;
   color: var(--text-dark);
@@ -346,12 +360,23 @@ h1 {
 
 .arrow-text-top {
   position: absolute;
-  top: -25px; /* moved up 35px to compensate (from 5px to -30px) */
-  left: -10px;
+  top: -21px;
+  left: -67px;
   font-family: "Kalam", cursive;
   font-size: 20px;
   color: var(--text-dark);
-  transform: rotate(-12deg);
+  transform: rotate(-19deg);
+  white-space: nowrap;
+}
+
+.arrow-text-mid {
+  position: absolute;
+  top: 84px;
+  left: -22px;
+  font-family: "Kalam", cursive;
+  font-size: 20px;
+  color: var(--text-dark);
+  transform: rotate(12deg);
   white-space: nowrap;
 }
 
@@ -802,5 +827,5 @@ h1 {
 .arrow-container.hidden,
 .arrow-container-top.hidden {
   opacity: 0;
-  transition: opacity 0.5s ease;
+  transition: opacity 1.2s ease;
 }
