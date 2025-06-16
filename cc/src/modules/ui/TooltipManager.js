@@ -74,12 +74,38 @@ export class TooltipManager {
   buildTooltipContent(conversions, baseCurrency, originalPrice) {
     let html = '<div class="currency-tooltip-content">';
 
-    for (const conversion of conversions) {
+    // Separate base currency from other conversions
+    const baseConversion = conversions.find((c) => c.currency === baseCurrency);
+    const otherConversions = conversions.filter(
+      (c) => c.currency !== baseCurrency
+    );
+
+    // Add non-base conversions first
+    for (const conversion of otherConversions) {
       const { currency, amount, symbol, formatted } = conversion;
-      const isBase = currency === baseCurrency;
 
       html += `
-        <div class="currency-item ${isBase ? "base-currency" : ""}">
+        <div class="currency-item">
+          <span class="currency-code">${currency}</span>
+          <span class="currency-amount">${symbol}${formatted}</span>
+        </div>
+      `;
+    }
+
+    // Add divider with "Converts to" text
+    if (baseConversion && otherConversions.length > 0) {
+      html += `
+        <div class="tooltip-divider">
+          <span class="tooltip-divider-text">Converts to</span>
+        </div>
+      `;
+    }
+
+    // Add base currency at the bottom
+    if (baseConversion) {
+      const { currency, amount, symbol, formatted } = baseConversion;
+      html += `
+        <div class="currency-item base-currency">
           <span class="currency-code">${currency}</span>
           <span class="currency-amount">${symbol}${formatted}</span>
         </div>

@@ -275,6 +275,27 @@
   }
 }
 
+/* Tooltip divider with "Converts to" text */
+.tooltip-divider {
+  position: relative !important;
+  margin: 8px 0 !important;
+  height: 1px !important;
+  background: var(--cc-tooltip-divider, rgba(255, 255, 255, 0.15)) !important;
+}
+
+.tooltip-divider-text {
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  background: var(--cc-tooltip-bg, rgba(0, 0, 0, 0.95)) !important;
+  padding: 0 8px !important;
+  font-size: 11px !important;
+  color: var(--cc-tooltip-code-color, rgba(255, 255, 255, 0.65)) !important;
+  font-style: italic !important;
+  white-space: nowrap !important;
+}
+
 /* High contrast mode support */
 @media (prefers-contrast: high) {
   .currency-tooltip {

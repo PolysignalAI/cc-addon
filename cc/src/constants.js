@@ -381,7 +381,7 @@ export const PRICE_PATTERNS = [
 ];
 
 // Debug flag - temporarily enabled for debugging
-export const DEBUG = true;
+export const DEBUG = false;
 
 // Debug wrapper functions
 export const debug = {
