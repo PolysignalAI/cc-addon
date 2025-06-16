@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # This produces a semver compatible version number from "git describe" output.
-# If run on a dirty working tree, '-dirty' is added to the version.
 
 GIT_DESCRIBE=$(git describe --tags --long 2>/dev/null || echo "v0.0.0-0-g$(git rev-parse --short HEAD)")
 

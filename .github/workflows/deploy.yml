@@ -27,6 +27,15 @@ jobs:
           SERVER_USER: ${{ secrets.SERVER_USER }}
           SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
           SERVER_DEPLOY_PATH: ${{ secrets.SERVER_DEPLOY_PATH }}
+          # Email secrets
+          CONTACT_EMAIL_TO: ${{ secrets.CONTACT_EMAIL_TO }}
+          GMAIL_USERNAME: ${{ secrets.GMAIL_USERNAME }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          # reCAPTCHA secrets
+          RECAPTCHA_SITE_KEY: ${{ secrets.RECAPTCHA_SITE_KEY }}
+          RECAPTCHA_SECRET_KEY: ${{ secrets.RECAPTCHA_SECRET_KEY }}
+          # GTM
+          GTM_CONTAINER_ID: ${{ secrets.GTM_CONTAINER_ID }}
         run: |
           # Setup SSH
           mkdir -p ~/.ssh
@@ -37,6 +46,10 @@ jobs:
           # Create deployment directory if it doesn't exist
           ssh $SERVER_USER@$SERVER_HOST "mkdir -p $SERVER_DEPLOY_PATH"
 
+          # Replace placeholders in HTML files before deployment
+          sed -i "s/YOUR-RECAPTCHA-SITE-KEY/$RECAPTCHA_SITE_KEY/g" web/index.html
+          sed -i "s/GTM-XXXXXXX/$GTM_CONTAINER_ID/g" web/index.html web/privacy.html
+
           # Deploy website files from web folder
           rsync -avz --delete \
             --exclude '.git' \
@@ -45,12 +58,32 @@ jobs:
             --exclude '*.md' \
             --exclude '.gitignore' \
             --exclude '.DS_Store' \
+            --exclude 'config.php' \
+            --exclude 'vendor' \
+            --exclude '.env' \
             web/ \
             $SERVER_USER@$SERVER_HOST:$SERVER_DEPLOY_PATH/
+
+          # Create config.php from example with secrets
+          ssh $SERVER_USER@$SERVER_HOST "cd $SERVER_DEPLOY_PATH && cp config.example.php config.php"
+          
+          # Create .env file with secrets on server
+          ssh $SERVER_USER@$SERVER_HOST "cat > $SERVER_DEPLOY_PATH/.env << EOF
+CONTACT_EMAIL_TO=$CONTACT_EMAIL_TO
+GMAIL_USERNAME=$GMAIL_USERNAME
+GMAIL_APP_PASSWORD=$GMAIL_APP_PASSWORD
+RECAPTCHA_SITE_KEY=$RECAPTCHA_SITE_KEY
+RECAPTCHA_SECRET_KEY=$RECAPTCHA_SECRET_KEY
+EOF"
+
+          # Run composer install on server
+          ssh $SERVER_USER@$SERVER_HOST "cd $SERVER_DEPLOY_PATH && composer install --no-dev --optimize-autoloader"
 
           # Set proper permissions
           ssh $SERVER_USER@$SERVER_HOST "find $SERVER_DEPLOY_PATH -type f -exec chmod 644 {} \;"
           ssh $SERVER_USER@$SERVER_HOST "find $SERVER_DEPLOY_PATH -type d -exec chmod 755 {} \;"
+          ssh $SERVER_USER@$SERVER_HOST "chmod 600 $SERVER_DEPLOY_PATH/config.php $SERVER_DEPLOY_PATH/.env"
+          ssh $SERVER_USER@$SERVER_HOST "chmod 755 $SERVER_DEPLOY_PATH/send-email-smtp.php"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2

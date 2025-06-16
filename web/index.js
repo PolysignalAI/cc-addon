@@ -747,3 +747,58 @@ pageThemeToggle.addEventListener("click", () => {
     );
   }
 });
+
+// Contact form submission
+const contactForm = document.getElementById("contact-form");
+if (contactForm) {
+  contactForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    // Validate reCAPTCHA
+    const recaptchaResponse = grecaptcha.getResponse();
+    if (!recaptchaResponse) {
+      alert("Please complete the reCAPTCHA verification.");
+      return;
+    }
+
+    const submitButton = contactForm.querySelector('button[type="submit"]');
+    const originalText = submitButton.textContent;
+    submitButton.textContent = "Sending...";
+    submitButton.disabled = true;
+
+    try {
+      const formData = new FormData(contactForm);
+      formData.append("g-recaptcha-response", recaptchaResponse);
+
+      const response = await fetch(contactForm.action, {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        // Success
+        contactForm.innerHTML = `
+          <div style="text-align: center; padding: 40px;">
+            <h3 style="color: #28a745; margin-bottom: 20px;">✓ Message Sent!</h3>
+            <p>${result.message || "Thank you for your message! We'll get back to you soon."}</p>
+          </div>
+        `;
+      } else {
+        // Error
+        alert(result.error || "Failed to send message. Please try again.");
+        submitButton.textContent = originalText;
+        submitButton.disabled = false;
+        // Reset reCAPTCHA
+        grecaptcha.reset();
+      }
+    } catch (error) {
+      alert("Network error. Please try again later.");
+      submitButton.textContent = originalText;
+      submitButton.disabled = false;
+      // Reset reCAPTCHA
+      grecaptcha.reset();
+    }
+  });
+}

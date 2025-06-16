@@ -17,6 +17,24 @@
     />
     <link rel="stylesheet" href="index.css" />
 
+    <!-- Google Tag Manager -->
+    <script>
+      (function (w, d, s, l, i) {
+        w[l] = w[l] || [];
+        w[l].push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
+        var f = d.getElementsByTagName(s)[0],
+          j = d.createElement(s),
+          dl = l != "dataLayer" ? "&l=" + l : "";
+        j.async = true;
+        j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
+        f.parentNode.insertBefore(j, f);
+      })(window, document, "script", "dataLayer", "GTM-XXXXXXX");
+    </script>
+    <!-- End Google Tag Manager -->
+
+    <!-- Google reCAPTCHA -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
     <!-- Favicons -->
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
     <link
@@ -39,6 +57,17 @@
     <link rel="manifest" href="/assets/site.webmanifest" />
   </head>
   <body>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript
+      ><iframe
+        src="https://www.googletagmanager.com/ns.html?id=GTM-XXXXXXX"
+        height="0"
+        width="0"
+        style="display: none; visibility: hidden"
+      ></iframe
+    ></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+
     <!-- Theme Toggle -->
     <button
       class="page-theme-toggle"
@@ -467,7 +496,8 @@
 
         <form
           class="contact-form fade-in"
-          action="https://formspree.io/f/YOUR_FORM_ID"
+          id="contact-form"
+          action="send-email-smtp.php"
           method="POST"
         >
           <div class="form-group">
@@ -488,6 +518,13 @@
               placeholder="Tell us what you think about the extension..."
               required
             ></textarea>
+          </div>
+
+          <div class="form-group">
+            <div
+              class="g-recaptcha"
+              data-sitekey="YOUR-RECAPTCHA-SITE-KEY"
+            ></div>
           </div>
 
           <button type="submit" class="submit-button">Send Message</button>

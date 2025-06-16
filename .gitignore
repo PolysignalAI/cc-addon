@@ -22,3 +22,10 @@ npm-debug.log*
 # Test coverage reports
 coverage/
 
+# Sensitive configuration files
+web/config.php
+web/.env
+
+# Composer dependencies
+web/vendor/
+

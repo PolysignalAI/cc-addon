@@ -146,7 +146,7 @@ npm run format        # Format all files
 npm run format:check  # Check formatting without changing files
 node build.js         # Build extension for all browsers
 node build.js --production # Build for production (DEBUG=false)
-node toggle-debug.js  # Toggle debug logging on/off
+node build.js --debug # Enable the debug flag
 ```
 
 ### Additional Documentation

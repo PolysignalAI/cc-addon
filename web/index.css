@@ -806,6 +806,13 @@ h1 {
   transform: translateY(-2px);
 }
 
+/* reCAPTCHA styling */
+.g-recaptcha {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+}
+
 /* Footer */
 .footer {
   background: var(--footer-bg);

@@ -33,17 +33,19 @@ Add the following secrets:
 
 ### Required Secrets
 
-#### SERVER_HOST
+#### Server Configuration
+
+##### SERVER_HOST
 
 - Your web server's IP address or domain name
 - Example: `123.45.67.89` or `cc.polysignal.com`
 
-#### SERVER_USER
+##### SERVER_USER
 
 - The SSH username on your web server
 - Example: `deploy` or `www-data` (avoid using root)
 
-#### SERVER_SSH_KEY
+##### SERVER_SSH_KEY
 
 - Copy the entire contents of your private key:
 
@@ -53,7 +55,7 @@ cat ~/.ssh/github_actions_deploy
 
 - Paste the complete output including `-----BEGIN OPENSSH PRIVATE KEY-----` and `-----END OPENSSH PRIVATE KEY-----`
 
-#### SERVER_DEPLOY_PATH
+##### SERVER_DEPLOY_PATH
 
 - The directory path on your server where the website files should be deployed
 - Common examples:
@@ -63,12 +65,16 @@ cat ~/.ssh/github_actions_deploy
   - Custom nginx site: `/etc/nginx/sites-available/cc.polysignal.com/html`
 - Note: Only the contents of the `web/` folder will be deployed here
 
-### Optional Secrets
+#### Email Configuration
 
-#### GITHUB_TOKEN
-
-- Usually automatically provided by GitHub Actions
-- Required for creating releases
+```
+CONTACT_EMAIL_TO
+GMAIL_USERNAME
+GMAIL_APP_PASSWORD
+RECAPTCHA_SITE_KEY
+RECAPTCHA_SECRET_KEY
+GTM_CONTAINER_ID
+```
 
 ## 4. Project Structure
 
@@ -116,16 +122,23 @@ git push origin v1.0.0
 
 ## 6. What Gets Deployed
 
-### To Server:
+### To Server
 
 - All files from the `web/` folder
 - Including the `addon/` folder populated by build.js
+- Placeholders in HTML files are replaced with actual values:
+  - `YOUR-RECAPTCHA-SITE-KEY` → Your reCAPTCHA site key
+  - `GTM-XXXXXXX` → Your GTM container ID
+- Server-side configuration files are created:
+  - `config.php` - Created from `config.example.php`
+  - `.env` - Created with email and reCAPTCHA secrets
+- PHP dependencies installed via Composer:
+  - PHPMailer for email functionality
 
-### To GitHub Releases:
+### To GitHub Releases
 
 - `currency-converter-chrome-VERSION.zip` - Chrome extension package
 - `currency-converter-firefox-VERSION.zip` - Firefox extension package
-- `currency-converter-website-VERSION.zip` - Complete website package
 
 ## 7. Build Process
 
@@ -134,20 +147,6 @@ The workflows automatically run `node build.js` which:
 1. Copies extension source files to chrome/ and firefox/ directories
 2. Bundles JavaScript modules for each browser
 3. Copies the addon to web/addon/ for the interactive demo
-
-## 8. Monitor the Deployment
-
-- Go to your repository → Actions tab
-- Watch the workflow run
-- Check for any errors in the logs
-
-## 9. Post-Deployment
-
-After successful deployment:
-
-- Website is live at your configured domain
-- GitHub Release is created with download links
-- Extension zips are available in the release
 
 ## Troubleshooting
 
@@ -178,6 +177,26 @@ After successful deployment:
 
 - The workflow sets 644 for files and 755 for directories
 - Adjust in the workflow if your server requires different permissions
+
+### Email Issues
+
+- Verify Gmail App Password is correct (not your regular password)
+- Ensure 2FA is enabled on your Gmail account
+- Check that Composer installed PHPMailer successfully
+- Verify PHP has OpenSSL extension enabled for SMTP
+
+### reCAPTCHA Issues
+
+- Ensure you're using v2 "I'm not a robot" (not v3)
+- Verify site key matches between Google reCAPTCHA admin and GitHub secret
+- Check that your domain is listed in reCAPTCHA settings
+- For local testing, add "localhost" to allowed domains
+
+### Missing Dependencies
+
+- The workflow runs `composer install` on the server
+- Ensure PHP and Composer are installed on your server
+- Check that the server has write permissions for vendor directory
 
 ## Testing Locally
 
