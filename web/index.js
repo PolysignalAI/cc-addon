@@ -838,3 +838,94 @@ if (contactForm) {
     }
   });
 }
+
+// Cookie Consent Management
+function initCookieConsent() {
+  const banner = document.getElementById("cookie-consent-banner");
+  const acceptBtn = document.querySelector(".cookie-consent-accept");
+  const declineBtn = document.querySelector(".cookie-consent-decline");
+
+  // Check if user has already made a choice
+  const consentData = localStorage.getItem("cookieConsent");
+
+  if (!consentData) {
+    // Show banner if no consent data exists
+    banner.style.display = "block";
+  } else {
+    // Apply saved preferences
+    const consent = JSON.parse(consentData);
+    applyConsent(consent);
+  }
+
+  // Helper function to update consent
+  function updateConsent(analytics, marketing) {
+    const consent = {
+      necessary: true,
+      analytics: analytics,
+      marketing: marketing,
+      timestamp: new Date().toISOString(),
+    };
+
+    // Save to localStorage
+    localStorage.setItem("cookieConsent", JSON.stringify(consent));
+
+    // Apply consent
+    applyConsent(consent);
+
+    // Hide banner
+    banner.style.display = "none";
+  }
+
+  // Apply consent settings to Google Tag Manager
+  function applyConsent(consent) {
+    gtag("consent", "update", {
+      analytics_storage: consent.analytics ? "granted" : "denied",
+      ad_storage: consent.marketing ? "granted" : "denied",
+      ad_user_data: consent.marketing ? "granted" : "denied",
+      ad_personalization: consent.marketing ? "granted" : "denied",
+    });
+  }
+
+  // Button handlers
+  acceptBtn.addEventListener("click", () => {
+    updateConsent(true, false); // analytics: true, marketing: false
+  });
+
+  declineBtn.addEventListener("click", () => {
+    updateConsent(false, false);
+  });
+
+  // Add preferences button to footer if consent exists
+  if (consentData) {
+    addPreferencesButton();
+  }
+}
+
+// Add a button to change cookie preferences
+function addPreferencesButton() {
+  const footer = document.querySelector("footer");
+  if (!footer) return;
+
+  const footerLinks = footer.querySelector(".footer-links");
+  if (!footerLinks) return;
+
+  const preferencesBtn = document.createElement("a");
+  preferencesBtn.textContent = "Cookie Settings";
+  preferencesBtn.href = "#";
+
+  preferencesBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    const banner = document.getElementById("cookie-consent-banner");
+    banner.style.display = "block";
+  });
+
+  // Insert at the beginning of footer links
+  footerLinks.insertBefore(preferencesBtn, footerLinks.firstChild);
+}
+
+// Initialize cookie consent when page loads
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initCookieConsent);
+} else {
+  initCookieConsent();
+}

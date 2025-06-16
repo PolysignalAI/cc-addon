@@ -17,6 +17,26 @@
     />
     <link rel="stylesheet" href="index.css" />
 
+    <!-- Cookie Consent Configuration -->
+    <script>
+      // Define dataLayer and the gtag function.
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+
+      // Set default consent to 'denied'
+      gtag("consent", "default", {
+        ad_storage: "denied",
+        ad_user_data: "denied",
+        ad_personalization: "denied",
+        analytics_storage: "denied",
+        functionality_storage: "granted",
+        personalization_storage: "granted",
+        security_storage: "granted",
+      });
+    </script>
+
     <!-- Google Tag Manager -->
     <script>
       (function (w, d, s, l, i) {
@@ -67,6 +87,28 @@
       ></iframe
     ></noscript>
     <!-- End Google Tag Manager (noscript) -->
+
+    <!-- Cookie Consent Banner -->
+    <div
+      id="cookie-consent-banner"
+      class="cookie-consent-banner"
+      style="display: none"
+    >
+      <div class="cookie-consent-content">
+        <p class="cookie-consent-text">
+          We use cookies to enhance your experience.
+          <a href="/privacy" class="cookie-consent-link">Read more</a>
+        </p>
+        <div class="cookie-consent-actions">
+          <button class="cookie-consent-button cookie-consent-accept">
+            Accept
+          </button>
+          <button class="cookie-consent-button cookie-consent-decline">
+            Decline
+          </button>
+        </div>
+      </div>
+    </div>
 
     <!-- Theme Toggle -->
     <button
@@ -232,7 +274,7 @@
           <div class="demo-preview fade-in">
             <div class="browser-frame">
               <div class="arrow-container-top">
-                <div class="arrow-text-top">Browser addon demo!</div>
+                <div class="arrow-text-top">Browser addon demo</div>
                 <svg
                   class="arrow-svg"
                   viewBox="0 0 150 100"
