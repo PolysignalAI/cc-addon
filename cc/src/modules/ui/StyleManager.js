@@ -61,6 +61,8 @@ export class StyleManager {
       borderStyle,
       backgroundOpacity,
       tooltipTheme,
+      paddingVertical = 2,
+      paddingHorizontal = 4,
     } = this.appearance;
 
     const bgColorRgba = this.hexToRgba(
@@ -90,6 +92,7 @@ export class StyleManager {
         text-decoration: none !important;
         display: inline-block;
         border-radius: ${borderRadius}px;
+        padding: ${paddingVertical}px ${paddingHorizontal}px;
         overflow: hidden; /* Ensure underline doesn't extend past rounded corners */
       }
 
@@ -112,7 +115,7 @@ export class StyleManager {
       .cc-style-border {
         border: ${borderThickness}px ${borderStyle} ${borderColor};
         border-radius: ${borderRadius}px;
-        padding: 2px 4px;
+        padding: ${paddingVertical}px ${paddingHorizontal}px;
         transition: all 0.2s ease;
       }
 
@@ -125,7 +128,7 @@ export class StyleManager {
       .cc-style-background {
         background-color: ${bgColorRgba};
         border-radius: ${borderRadius}px;
-        padding: 2px 4px;
+        padding: ${paddingVertical}px ${paddingHorizontal}px;
         transition: all 0.2s ease;
       }
 

@@ -59,6 +59,8 @@ class PopupManager {
       borderStyle: "solid",
       backgroundOpacity: 10,
       tooltipTheme: "dark",
+      paddingVertical: 2,
+      paddingHorizontal: 4,
     };
 
     // Theme
@@ -369,6 +371,29 @@ class PopupManager {
         this.debouncedSave();
       });
 
+    // Padding controls
+    document
+      .getElementById("padding-vertical")
+      .addEventListener("input", (e) => {
+        this.appearance.paddingVertical = parseInt(e.target.value);
+        document.querySelector(
+          "#padding-vertical + .slider-value"
+        ).textContent = `${e.target.value}px`;
+        this.updateAppearancePreview();
+        this.debouncedSave();
+      });
+
+    document
+      .getElementById("padding-horizontal")
+      .addEventListener("input", (e) => {
+        this.appearance.paddingHorizontal = parseInt(e.target.value);
+        document.querySelector(
+          "#padding-horizontal + .slider-value"
+        ).textContent = `${e.target.value}px`;
+        this.updateAppearancePreview();
+        this.debouncedSave();
+      });
+
     // Select controls
     document.getElementById("border-style").addEventListener("change", (e) => {
       this.appearance.borderStyle = e.target.value;
@@ -656,6 +681,10 @@ class PopupManager {
       this.appearance.borderRadius || 0;
     document.getElementById("background-opacity").value =
       this.appearance.backgroundOpacity;
+    document.getElementById("padding-vertical").value =
+      this.appearance.paddingVertical || 2;
+    document.getElementById("padding-horizontal").value =
+      this.appearance.paddingHorizontal || 4;
     document.getElementById("border-style").value = this.appearance.borderStyle;
     document.getElementById("tooltip-theme").value =
       this.appearance.tooltipTheme;
@@ -668,6 +697,10 @@ class PopupManager {
     }px`;
     document.querySelector("#background-opacity + .slider-value").textContent =
       `${this.appearance.backgroundOpacity}%`;
+    document.querySelector("#padding-vertical + .slider-value").textContent =
+      `${this.appearance.paddingVertical || 2}px`;
+    document.querySelector("#padding-horizontal + .slider-value").textContent =
+      `${this.appearance.paddingHorizontal || 4}px`;
   }
 
   updateAppearancePreview() {
@@ -733,6 +766,14 @@ class PopupManager {
       `${this.appearance.borderRadius || 0}px`
     );
     root.style.setProperty("--border-style", this.appearance.borderStyle);
+    root.style.setProperty(
+      "--padding-vertical",
+      `${this.appearance.paddingVertical || 2}px`
+    );
+    root.style.setProperty(
+      "--padding-horizontal",
+      `${this.appearance.paddingHorizontal || 4}px`
+    );
 
     // Calculate background colors with opacity
     const bgRgb = this.hexToRgb(this.appearance.backgroundColor);
@@ -779,6 +820,14 @@ class PopupManager {
       `${this.appearance.borderRadius || 0}px`
     );
     root.style.setProperty("--cc-border-style", this.appearance.borderStyle);
+    root.style.setProperty(
+      "--cc-padding-vertical",
+      `${this.appearance.paddingVertical || 2}px`
+    );
+    root.style.setProperty(
+      "--cc-padding-horizontal",
+      `${this.appearance.paddingHorizontal || 4}px`
+    );
     root.style.setProperty("--cc-background-color-rgba", bgColorRgba);
     root.style.setProperty(
       "--cc-background-hover-color-rgba",
@@ -830,6 +879,8 @@ class PopupManager {
       borderStyle: "solid",
       backgroundOpacity: 10,
       tooltipTheme: "dark",
+      paddingVertical: 2,
+      paddingHorizontal: 4,
     };
 
     this.loadAppearanceSettings();

@@ -687,12 +687,16 @@ body {
 /* Currency List */
 .currency-list {
   flex: 1;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
   margin-bottom: 60px; /* Space for footer with links */
+  overflow: hidden;
 }
 
 #currency-items {
   padding: 8px 12px;
+  overflow-y: auto;
+  flex: 1;
 }
 
 .currency-item {
@@ -784,7 +788,9 @@ body {
 
 /* Filter */
 .filter-container {
-  position: relative;
+  position: sticky;
+  top: 0;
+  z-index: 10;
   padding: 8px 12px;
   border-bottom: 1px solid var(--popup-border-color);
   background: var(--bg-secondary);
@@ -1105,13 +1111,16 @@ input[type="color"] {
 }
 
 .color-preset:hover {
-  transform: scale(1.1);
+  transform: scale(1.2);
   border-color: #495057;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 }
 
 .color-preset.active {
-  border-color: #495057;
+  transform: scale(1.2);
+  border-color: #007bff;
   border-width: 2px;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
 }
 
 /* Sliders */
@@ -1273,6 +1282,7 @@ input[type="color"] {
   border-bottom-color: var(--border-color, #007bff) !important;
   background: var(--background-color-rgba, rgba(0, 123, 255, 0.1)) !important;
   border-radius: var(--border-radius, 0px) !important;
+  padding: var(--padding-vertical, 2px) var(--padding-horizontal, 4px) !important;
 }
 
 .style-underline:hover {
@@ -1289,6 +1299,7 @@ input[type="color"] {
   border-color: var(--border-color, #007bff) !important;
   background: var(--background-color-rgba, rgba(0, 123, 255, 0.1)) !important;
   border-radius: var(--border-radius, 0px) !important;
+  padding: var(--padding-vertical, 2px) var(--padding-horizontal, 4px) !important;
 }
 
 .style-border:hover {
@@ -1302,6 +1313,7 @@ input[type="color"] {
 .style-background {
   background: var(--background-color-rgba, rgba(0, 123, 255, 0.1)) !important;
   border-radius: var(--border-radius, 0px) !important;
+  padding: var(--padding-vertical, 2px) var(--padding-horizontal, 4px) !important;
 }
 
 .style-background:hover {

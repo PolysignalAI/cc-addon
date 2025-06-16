@@ -872,6 +872,9 @@ export class PriceConverter {
     this.messageHandler.cleanup();
     this.messageBus.cleanup();
 
+    // Reset handler setup flag so they can be re-registered on next init
+    this.messageHandlersSetup = false;
+
     // Clean up modules
     this.tooltipManager.cleanup();
     this.styleManager.cleanup();
