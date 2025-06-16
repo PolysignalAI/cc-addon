@@ -617,8 +617,9 @@ class PopupManager {
 
           // Get the currency symbol from constants
           const symbol =
-            CURRENCY_SYMBOLS[this.baseCurrency] || this.baseCurrency + " ";
-          priceHTML = `<span class="currency-price">${symbol}${formattedWithCommas}</span>`;
+            CURRENCY_SYMBOLS[this.baseCurrency] || this.baseCurrency;
+          const symbolWithSpace = symbol ? `${symbol} ` : "";
+          priceHTML = `<span class="currency-price">${symbolWithSpace}${formattedWithCommas}</span>`;
         }
       }
 
@@ -1341,15 +1342,21 @@ class PopupManager {
         // Update timestamp
         if (response.lastUpdate) {
           const date = new Date(response.lastUpdate);
-          const hours = date.getHours().toString().padStart(2, "0");
+          let hours = date.getHours();
           const minutes = date.getMinutes().toString().padStart(2, "0");
+          const ampm = hours >= 12 ? "PM" : "AM";
+
+          // Convert to 12-hour format
+          hours = hours % 12;
+          hours = hours ? hours : 12; // 0 becomes 12
+
           const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
           const tzAbbr = new Date()
             .toLocaleTimeString("en-US", { timeZoneName: "short" })
             .split(" ")
             .pop();
 
-          const lastUpdatedText = `Last updated: ${hours}:${minutes} ${tzAbbr}`;
+          const lastUpdatedText = `Last updated: ${hours}:${minutes}${ampm} ${tzAbbr}`;
           if (lastUpdatedElement) {
             lastUpdatedElement.textContent = lastUpdatedText;
           }
