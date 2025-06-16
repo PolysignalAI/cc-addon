@@ -179,7 +179,7 @@ jobs:
           ssh $SERVER_USER@$SERVER_HOST "cd $SERVER_DEPLOY_PATH && cp config.example.php config.php"
           
           # Create .env file with secrets on server
-          ssh $SERVER_USER@$SERVER_HOST "cat > $SERVER_DEPLOY_PATH/.env << EOF
+          ssh $SERVER_USER@$SERVER_HOST "cat > $SERVER_DEPLOY_PATH/.env << 'EOF'
 CONTACT_EMAIL_TO=$CONTACT_EMAIL_TO
 GMAIL_USERNAME=$GMAIL_USERNAME
 GMAIL_APP_PASSWORD=$GMAIL_APP_PASSWORD

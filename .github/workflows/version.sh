@@ -8,8 +8,7 @@ GIT_COMMITS=$(echo "${GIT_DESCRIBE}" | awk -F - '{ print $2 }')
 GIT_SHA=$(echo "${GIT_DESCRIBE}" | awk -F - '{ print $3 }' | sed 's/^g//')
 GIT_TAG=$(echo "${GIT_DESCRIBE}" | awk -F - '{ print $1 }')
 
-# Removed dirty check for cleaner version numbers
-# [ -z "$(git status --porcelain)" ] || GIT_TAG="${GIT_TAG}-dirty"
+# Version is always clean - no dirty suffix
 
 if [ "$GIT_COMMITS" = "0" ]; then
   VERSION="${GIT_TAG}"
