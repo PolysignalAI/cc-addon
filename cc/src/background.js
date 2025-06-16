@@ -44,7 +44,11 @@ messageBus.on("forceUpdate", async () => {
 
 // Legacy message handlers for backward compatibility
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === "getRates") {
+  if (request.action === "ping") {
+    // Simple ping to keep service worker alive
+    sendResponse({ pong: true });
+    return true;
+  } else if (request.action === "getRates") {
     const rates = exchangeRateManager.getRates();
     const lastUpdated = exchangeRateManager.getLastUpdated();
 
@@ -83,6 +87,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       crypto: cryptoRates,
       lastUpdate: lastUpdated,
     });
+    return true; // Keep channel open for async response
   } else if (
     request.action === "forceSync" ||
     request.action === "forceUpdate"
@@ -106,6 +111,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     } else {
       sendResponse({ result: null });
     }
+    return true; // Keep channel open for async response
   }
 });
 

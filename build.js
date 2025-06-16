@@ -424,14 +424,21 @@ function build() {
     }
   }
 
-  // Copy HTML and CSS files from src
-  const srcStaticFiles = ["popup.html", "popup.css", "content.css"];
+  // Copy CSS files from src
+  const srcStaticFiles = ["popup.css", "content.css"];
   for (const file of srcStaticFiles) {
     const srcPath = path.join("cc/src", file);
     if (fs.existsSync(srcPath)) {
       fs.copyFileSync(srcPath, path.join("chrome/src", file));
       fs.copyFileSync(srcPath, path.join("firefox/src", file));
     }
+  }
+
+  // Copy popup.html
+  const popupPath = path.join("cc/src", "popup.html");
+  if (fs.existsSync(popupPath)) {
+    fs.copyFileSync(popupPath, path.join("chrome/src", "popup.html"));
+    fs.copyFileSync(popupPath, path.join("firefox/src", "popup.html"));
   }
 
   // Copy manifests
@@ -472,7 +479,7 @@ function build() {
     }
 
     // Copy HTML and CSS files
-    for (const file of srcStaticFiles) {
+    for (const file of ["popup.html", ...srcStaticFiles]) {
       const srcPath = path.join("cc/src", file);
       if (fs.existsSync(srcPath)) {
         fs.copyFileSync(srcPath, path.join(webAddonPath, "src", file));

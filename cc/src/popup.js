@@ -676,14 +676,21 @@ class PopupManager {
 
     if (!preview) return;
 
-    // Reset classes
+    // Reset classes and remove any inline styles
     preview.className = "price-preview";
+    preview.removeAttribute("style"); // Clear any inline styles
 
     // Apply style
     preview.classList.add(`style-${this.appearance.highlightStyle}`);
 
+    // Force immediate style recalculation
+    preview.offsetHeight; // Trigger reflow
+
     // Apply CSS custom properties
     const root = document.documentElement;
+
+    // Set properties both with and without cc- prefix for compatibility
+    // Without prefix for popup.css
     root.style.setProperty("--border-color", this.appearance.borderColor);
     root.style.setProperty(
       "--border-hover-color",
@@ -701,6 +708,26 @@ class PopupManager {
       "--border-thickness",
       `${this.appearance.borderThickness}px`
     );
+
+    debug.log("Current appearance settings:", {
+      borderThickness: this.appearance.borderThickness,
+      borderThicknessType: typeof this.appearance.borderThickness,
+      cssVarValue: `${this.appearance.borderThickness}px`,
+      highlightStyle: this.appearance.highlightStyle,
+    });
+
+    // Check computed styles after a short delay
+    setTimeout(() => {
+      const computedStyles = window.getComputedStyle(preview);
+      debug.log("Preview element computed border styles:", {
+        borderBottom: computedStyles.borderBottom,
+        border: computedStyles.border,
+        borderBottomWidth: computedStyles.borderBottomWidth,
+        borderWidth: computedStyles.borderWidth,
+        outline: computedStyles.outline,
+        boxShadow: computedStyles.boxShadow,
+      });
+    }, 100);
     root.style.setProperty(
       "--border-radius",
       `${this.appearance.borderRadius || 0}px`
@@ -712,13 +739,50 @@ class PopupManager {
     const bgHoverRgb = this.hexToRgb(this.appearance.backgroundHoverColor);
     const opacity = this.appearance.backgroundOpacity / 100;
 
+    // Check if color conversion worked
+    if (!bgRgb || !bgHoverRgb) {
+      debug.error("Failed to convert colors:", {
+        backgroundColor: this.appearance.backgroundColor,
+        backgroundHoverColor: this.appearance.backgroundHoverColor,
+        bgRgb,
+        bgHoverRgb,
+      });
+      return;
+    }
+
+    const bgColorRgba = `rgba(${bgRgb.r}, ${bgRgb.g}, ${bgRgb.b}, ${opacity})`;
+    const bgHoverColorRgba = `rgba(${bgHoverRgb.r}, ${bgHoverRgb.g}, ${bgHoverRgb.b}, ${opacity})`;
+
+    root.style.setProperty("--background-color-rgba", bgColorRgba);
+    root.style.setProperty("--background-hover-color-rgba", bgHoverColorRgba);
+
+    // With cc- prefix for content.css (if preview element uses same classes)
+    root.style.setProperty("--cc-border-color", this.appearance.borderColor);
     root.style.setProperty(
-      "--background-color-rgba",
-      `rgba(${bgRgb.r}, ${bgRgb.g}, ${bgRgb.b}, ${opacity})`
+      "--cc-border-hover-color",
+      this.appearance.borderHoverColor
     );
     root.style.setProperty(
-      "--background-hover-color-rgba",
-      `rgba(${bgHoverRgb.r}, ${bgHoverRgb.g}, ${bgHoverRgb.b}, ${opacity})`
+      "--cc-background-color",
+      this.appearance.backgroundColor
+    );
+    root.style.setProperty(
+      "--cc-background-hover-color",
+      this.appearance.backgroundHoverColor
+    );
+    root.style.setProperty(
+      "--cc-border-thickness",
+      `${this.appearance.borderThickness}px`
+    );
+    root.style.setProperty(
+      "--cc-border-radius",
+      `${this.appearance.borderRadius || 0}px`
+    );
+    root.style.setProperty("--cc-border-style", this.appearance.borderStyle);
+    root.style.setProperty("--cc-background-color-rgba", bgColorRgba);
+    root.style.setProperty(
+      "--cc-background-hover-color-rgba",
+      bgHoverColorRgba
     );
 
     // Update tooltip theme
@@ -774,22 +838,35 @@ class PopupManager {
   }
 
   broadcastAppearanceUpdate() {
-    // Send appearance settings only to active tab
+    // Send appearance settings only to active tab if it supports content scripts
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs[0] && tabs[0].id) {
-        chrome.tabs.sendMessage(
-          tabs[0].id,
-          {
-            action: "updateAppearance",
-            appearance: this.appearance,
-          },
-          () => {
-            // Ignore errors for tabs that don't have content script
-            if (chrome.runtime.lastError) {
-              // Silent fail
+      if (tabs[0]?.id && tabs[0]?.url) {
+        // Check if we can inject content scripts on this page
+        const url = tabs[0].url;
+        const canInject =
+          url &&
+          !url.startsWith("chrome://") &&
+          !url.startsWith("chrome-extension://") &&
+          !url.startsWith("edge://") &&
+          !url.startsWith("about:") &&
+          !url.startsWith("file://") &&
+          !url.includes("chrome.google.com/webstore");
+
+        if (canInject) {
+          chrome.tabs.sendMessage(
+            tabs[0].id,
+            {
+              action: "updateAppearance",
+              appearance: this.appearance,
+            },
+            () => {
+              // Ignore errors for tabs that don't have content script
+              if (chrome.runtime.lastError) {
+                // Silent fail
+              }
             }
-          }
-        );
+          );
+        }
       }
     });
   }
@@ -1054,46 +1131,45 @@ class PopupManager {
       // Settings saved
     });
 
-    // Send update to active tab using reliable message bus
-    try {
-      debug.log("Sending settings to content script:", {
-        selectedCurrencies: Array.from(this.selectedCurrencies),
-      });
+    // Try to send update to active tab, but don't fail if it doesn't work
+    // (e.g., on chrome:// pages or other restricted pages)
+    chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
+      if (tabs[0]?.id && tabs[0]?.url) {
+        // Check if we can inject content scripts on this page
+        const url = tabs[0].url;
+        const canInject =
+          url &&
+          !url.startsWith("chrome://") &&
+          !url.startsWith("chrome-extension://") &&
+          !url.startsWith("edge://") &&
+          !url.startsWith("about:") &&
+          !url.startsWith("file://") &&
+          !url.includes("chrome.google.com/webstore");
 
-      const response = await this.messageBus.sendToActiveTab(
-        {
-          action: "updateSettings",
-          selectedCurrencies: Array.from(this.selectedCurrencies),
-          favoriteCurrencies: Array.from(this.favoriteCurrencies),
-          disabledUrls: this.disabledUrls,
-          baseCurrency: this.baseCurrency,
-          appearance: this.appearance,
-          extensionEnabled: this.extensionEnabled,
-          btcDenomination: this.btcDenomination || "btc",
-        },
-        {
-          maxRetries: 3,
-          needsAck: true,
+        if (canInject) {
+          try {
+            await chrome.tabs.sendMessage(tabs[0].id, {
+              action: "updateSettings",
+              selectedCurrencies: Array.from(this.selectedCurrencies),
+              favoriteCurrencies: Array.from(this.favoriteCurrencies),
+              disabledUrls: this.disabledUrls,
+              baseCurrency: this.baseCurrency,
+              appearance: this.appearance,
+              extensionEnabled: this.extensionEnabled,
+              btcDenomination: this.btcDenomination || "btc",
+            });
+          } catch (error) {
+            // Silently ignore - content script might not be loaded yet
+            if (DEBUG) {
+              debug.log(
+                "Could not send settings to tab (this is normal for restricted pages):",
+                error.message
+              );
+            }
+          }
         }
-      );
-    } catch (error) {
-      debug.error("Failed to send settings update:", error);
-      // Fall back to old method for backward compatibility
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        if (tabs[0]?.id) {
-          chrome.tabs.sendMessage(tabs[0].id, {
-            action: "updateSettings",
-            selectedCurrencies: Array.from(this.selectedCurrencies),
-            favoriteCurrencies: Array.from(this.favoriteCurrencies),
-            disabledUrls: this.disabledUrls,
-            baseCurrency: this.baseCurrency,
-            appearance: this.appearance,
-            extensionEnabled: this.extensionEnabled,
-            btcDenomination: this.btcDenomination || "btc",
-          });
-        }
-      });
-    }
+      }
+    });
   }
 
   convertCurrency(amount, fromCurrency, toCurrency) {
@@ -1120,7 +1196,21 @@ class PopupManager {
 
     try {
       // Get the last update time and rates from background
-      const response = await chrome.runtime.sendMessage({ action: "getRates" });
+      let response;
+      try {
+        response = await chrome.runtime.sendMessage({ action: "getRates" });
+      } catch (error) {
+        debug.warn("Failed to connect to background script:", error);
+        // Try to wake up the service worker and retry
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        try {
+          response = await chrome.runtime.sendMessage({ action: "getRates" });
+        } catch (retryError) {
+          debug.error("Service worker not available:", retryError);
+          throw retryError;
+        }
+      }
+
       if (response) {
         // Store exchange rates - combine fiat and crypto rates
         if (response.fiat || response.crypto) {
@@ -1153,7 +1243,9 @@ class PopupManager {
             lastUpdatedElement.textContent = "Loading...";
           }
           // Request background to fetch rates immediately
-          chrome.runtime.sendMessage({ action: "forceUpdate" });
+          chrome.runtime.sendMessage({ action: "forceUpdate" }).catch((err) => {
+            debug.warn("Failed to send forceUpdate:", err);
+          });
           // Retry in 2 seconds
           setTimeout(() => this.updateLastUpdated(), 2000);
         }
@@ -1167,7 +1259,9 @@ class PopupManager {
           lastUpdatedElement.textContent = "Loading...";
         }
         // Request background to fetch rates
-        chrome.runtime.sendMessage({ action: "forceUpdate" });
+        chrome.runtime.sendMessage({ action: "forceUpdate" }).catch((err) => {
+          debug.warn("Failed to send forceUpdate:", err);
+        });
         // Retry in 2 seconds
         setTimeout(() => this.updateLastUpdated(), 2000);
       }

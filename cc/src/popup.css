@@ -37,11 +37,14 @@
 body {
   width: 350px;
   height: 500px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background: var(--bg-primary);
   color: var(--text-primary);
   overflow: hidden;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 .container {
@@ -52,7 +55,9 @@ body {
 
 /* View Management */
 .view {
-  transition: transform 0.3s ease, opacity 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    opacity 0.3s ease;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -307,7 +312,9 @@ body {
   overflow: hidden;
   max-height: 0;
   padding: 0 12px;
-  transition: max-height 0.3s ease, padding 0.3s ease;
+  transition:
+    max-height 0.3s ease,
+    padding 0.3s ease;
 }
 
 .converter-widget.expanded {
@@ -1261,8 +1268,9 @@ input[type="color"] {
 
 /* Dynamic Style Classes */
 .style-underline {
-  border-bottom: var(--border-thickness, 2px) var(--border-style, solid)
-    var(--border-color, #007bff) !important;
+  border-bottom-width: var(--border-thickness, 2px) !important;
+  border-bottom-style: var(--border-style, solid) !important;
+  border-bottom-color: var(--border-color, #007bff) !important;
   background: var(--background-color-rgba, rgba(0, 123, 255, 0.1)) !important;
   border-radius: var(--border-radius, 0px) !important;
 }
@@ -1276,8 +1284,9 @@ input[type="color"] {
 }
 
 .style-border {
-  border: var(--border-thickness, 2px) var(--border-style, solid)
-    var(--border-color, #007bff) !important;
+  border-width: var(--border-thickness, 2px) !important;
+  border-style: var(--border-style, solid) !important;
+  border-color: var(--border-color, #007bff) !important;
   background: var(--background-color-rgba, rgba(0, 123, 255, 0.1)) !important;
   border-radius: var(--border-radius, 0px) !important;
 }
@@ -1453,7 +1462,9 @@ input[type="color"] {
   cursor: help;
   font-style: normal;
   color: var(--text-secondary);
-  transition: background-color 0.2s, color 0.2s;
+  transition:
+    background-color 0.2s,
+    color 0.2s;
 }
 
 .help-icon:hover {

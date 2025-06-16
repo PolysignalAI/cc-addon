@@ -66,17 +66,21 @@ export class MessageBus {
         const result = handler(payload, sender);
         if (result instanceof Promise) {
           result.catch((error) => {
-            debug.error(
-              `Error handling acknowledged message ${payload.action}:`,
-              error
-            );
+            if (typeof debug !== "undefined" && debug.error) {
+              debug.error(
+                `Error handling acknowledged message ${payload.action}:`,
+                error
+              );
+            }
           });
         }
       } catch (error) {
-        debug.error(
-          `Error handling acknowledged message ${payload.action}:`,
-          error
-        );
+        if (typeof debug !== "undefined" && debug.error) {
+          debug.error(
+            `Error handling acknowledged message ${payload.action}:`,
+            error
+          );
+        }
       }
     }
   }
@@ -86,7 +90,9 @@ export class MessageBus {
    */
   on(action, handler) {
     this.handlers.set(action, handler);
-    debug.log(`Registered handler for action: ${action}`);
+    if (typeof debug !== "undefined" && debug.log) {
+      debug.log(`Registered handler for action: ${action}`);
+    }
   }
 
   /**
@@ -122,7 +128,9 @@ export class MessageBus {
 
         return response;
       } catch (error) {
-        debug.warn(`Message send attempt ${attempt + 1} failed:`, error);
+        if (typeof debug !== "undefined" && debug.warn) {
+          debug.warn(`Message send attempt ${attempt + 1} failed:`, error);
+        }
 
         if (attempt < maxRetries - 1) {
           // Exponential backoff

@@ -72,6 +72,9 @@ export class StyleManager {
       (backgroundOpacity + 10) / 100
     );
 
+    // Set CSS custom properties on the document root
+    this.setCSSVariables();
+
     return `
       /* Base styles for all highlight types */
       .price-wrapper {
@@ -86,29 +89,23 @@ export class StyleManager {
         position: relative;
         text-decoration: none !important;
         display: inline-block;
+        border-radius: ${borderRadius}px;
+        overflow: hidden; /* Ensure underline doesn't extend past rounded corners */
       }
 
       .cc-style-underline::after {
         content: '';
         position: absolute;
         left: 0;
-        bottom: -2px;
+        bottom: 0;
         width: 100%;
         height: ${borderThickness}px;
         background: ${borderColor};
-        transition: all 0.3s ease;
-        transform-origin: center;
-        animation: breathe 3s ease-in-out infinite;
+        transition: background 0.3s ease;
       }
 
       .cc-style-underline:hover::after {
         background: ${borderHoverColor};
-        transform: scaleY(1.5);
-      }
-
-      @keyframes breathe {
-        0%, 100% { opacity: 0.6; transform: scaleX(0.95); }
-        50% { opacity: 1; transform: scaleX(1); }
       }
 
       /* Border style */
@@ -241,6 +238,8 @@ export class StyleManager {
   updateStyles(appearance) {
     this.appearance = appearance;
     this.injectStyles();
+    // Ensure CSS variables are updated as well
+    this.setCSSVariables();
   }
 
   /**
@@ -312,6 +311,61 @@ export class StyleManager {
         subtree: false,
       });
     }
+  }
+
+  /**
+   * Set CSS custom properties on document root
+   */
+  setCSSVariables() {
+    if (!this.appearance) return;
+
+    const {
+      borderColor,
+      borderHoverColor,
+      backgroundColor,
+      backgroundHoverColor,
+      borderThickness,
+      borderRadius,
+      borderStyle,
+      backgroundOpacity,
+    } = this.appearance;
+
+    const bgColorRgba = this.hexToRgba(
+      backgroundColor,
+      backgroundOpacity / 100
+    );
+    const bgHoverColorRgba = this.hexToRgba(
+      backgroundHoverColor,
+      (backgroundOpacity + 10) / 100
+    );
+
+    const root = document.documentElement;
+
+    // Set all cc- prefixed CSS variables
+    root.style.setProperty("--cc-border-color", borderColor);
+    root.style.setProperty("--cc-border-hover-color", borderHoverColor);
+    root.style.setProperty("--cc-background-color", backgroundColor);
+    root.style.setProperty("--cc-background-hover-color", backgroundHoverColor);
+    root.style.setProperty("--cc-border-thickness", `${borderThickness}px`);
+    root.style.setProperty("--cc-border-radius", `${borderRadius || 0}px`);
+    root.style.setProperty("--cc-border-style", borderStyle);
+    root.style.setProperty("--cc-background-color-rgba", bgColorRgba);
+    root.style.setProperty(
+      "--cc-background-hover-color-rgba",
+      bgHoverColorRgba
+    );
+
+    debug.log("CSS variables set on document root:", {
+      borderColor,
+      borderHoverColor,
+      backgroundColor,
+      backgroundHoverColor,
+      borderThickness,
+      borderRadius,
+      borderStyle,
+      bgColorRgba,
+      bgHoverColorRgba,
+    });
   }
 
   /**

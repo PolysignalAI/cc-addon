@@ -380,8 +380,8 @@ export const PRICE_PATTERNS = [
   /\b[\d,]+(?:\.\d+)?\s+(?:USD|EUR|GBP|JPY|CAD|AUD|CHF|CNY|INR|KRW|MXN|BRL|RUB|SGD|HKD|NZD|SEK|NOK|DKK|PLN|TRY|ZAR|ILS|CZK|HUF|RON|BGN|IDR|PHP|MYR|ISK)\b/gi,
 ];
 
-// Debug flag - set to false in production
-export const DEBUG = false;
+// Debug flag - temporarily enabled for debugging
+export const DEBUG = true;
 
 // Debug wrapper functions
 export const debug = {
