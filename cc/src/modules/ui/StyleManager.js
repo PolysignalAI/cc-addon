@@ -90,7 +90,6 @@ export class StyleManager {
       .cc-style-underline {
         position: relative;
         text-decoration: none !important;
-        display: inline-block;
         border-radius: ${borderRadius}px;
         /* Use padding with negative margins to prevent layout shift */
         padding: ${paddingVertical}px ${paddingHorizontal}px;
