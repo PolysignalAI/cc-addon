@@ -1,6 +1,6 @@
 // Demo state
 let demoState = {
-  theme: "light", // Start with light theme for the website
+  theme: document.documentElement.getAttribute("data-theme") || "light", // Match initial page theme
   tooltipTheme: "dark",
   highlightStyle: "underline",
   borderColor: "#007bff",
@@ -125,6 +125,22 @@ document.addEventListener("DOMContentLoaded", async function () {
   // Add scripts
   const scriptEl = iframeDoc.createElement("script");
   scriptEl.textContent = `
+          // Listen for theme updates from parent
+          window.addEventListener('message', (event) => {
+            if (event.data.type === 'updateTheme') {
+              document.documentElement.setAttribute('data-theme', event.data.theme);
+              // Update the stored theme without clicking the toggle
+              if (window.chrome && window.chrome.storage && window.chrome.storage.sync) {
+                window.chrome.storage.sync.set({ theme: event.data.theme });
+              }
+              // Update the popup instance if it exists
+              if (window.popupInstance) {
+                window.popupInstance.theme = event.data.theme;
+                window.popupInstance.applyTheme();
+              }
+            }
+          });
+
           // Mock browser APIs
           window.chrome = window.browser = {
             storage: {
@@ -403,6 +419,15 @@ document.addEventListener("DOMContentLoaded", async function () {
         topArrow.classList.add("hidden");
       }
     });
+
+    // Send initial theme to iframe
+    iframe.contentWindow.postMessage(
+      {
+        type: "updateTheme",
+        theme: demoState.theme,
+      },
+      "*"
+    );
   });
 });
 
@@ -699,3 +724,26 @@ document.querySelectorAll(".fade-in").forEach((el) => {
 // Initialize styles
 updatePriceStyles();
 updateTooltipCurrencies();
+
+// Page theme toggle
+const pageThemeToggle = document.getElementById("page-theme-toggle");
+pageThemeToggle.addEventListener("click", () => {
+  const currentTheme = document.documentElement.getAttribute("data-theme");
+  const newTheme = currentTheme === "dark" ? "light" : "dark";
+
+  // Update page theme
+  document.documentElement.setAttribute("data-theme", newTheme);
+  demoState.theme = newTheme;
+
+  // Update iframe theme
+  const iframe = document.getElementById("extension-demo-frame");
+  if (iframe && iframe.contentWindow) {
+    iframe.contentWindow.postMessage(
+      {
+        type: "updateTheme",
+        theme: newTheme,
+      },
+      "*"
+    );
+  }
+});

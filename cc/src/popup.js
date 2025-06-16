@@ -990,6 +990,9 @@ class PopupManager {
 
   applyTheme() {
     document.body.setAttribute("data-theme", this.theme);
+    // Also update documentElement for iframe compatibility
+    document.documentElement.setAttribute("data-theme", this.theme);
+
     const themeToggle = document.getElementById("theme-toggle");
     if (themeToggle) {
       const svg = themeToggle.querySelector("svg");
@@ -1585,5 +1588,5 @@ class PopupManager {
 
 // Initialize popup when DOM is loaded
 document.addEventListener("DOMContentLoaded", () => {
-  new PopupManager();
+  window.popupInstance = new PopupManager();
 });
