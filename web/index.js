@@ -762,9 +762,40 @@ if (contactForm) {
     }
 
     const submitButton = contactForm.querySelector('button[type="submit"]');
-    const originalText = submitButton.textContent;
-    submitButton.textContent = "Sending...";
+    const originalText = submitButton.innerHTML;
+
+    // Create spinner HTML
+    const spinnerHTML = `
+      <span style="display: inline-flex; align-items: center; gap: 8px;">
+        <svg class="spinner" style="width: 16px; height: 16px; animation: rotate 1s linear infinite;" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="31.4" stroke-dashoffset="10.5" style="animation: dash 1.5s ease-in-out infinite;"></circle>
+        </svg>
+        Sending...
+      </span>
+    `;
+
+    // Add spinner animation styles if not already present
+    if (!document.getElementById("spinner-styles")) {
+      const style = document.createElement("style");
+      style.id = "spinner-styles";
+      style.textContent = `
+        @keyframes rotate {
+          100% { transform: rotate(360deg); }
+        }
+        @keyframes dash {
+          0% { stroke-dashoffset: 31.4; }
+          50% { stroke-dashoffset: 0; }
+          100% { stroke-dashoffset: -31.4; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    // Lock the button and show spinner
+    submitButton.innerHTML = spinnerHTML;
     submitButton.disabled = true;
+    submitButton.style.cursor = "not-allowed";
+    submitButton.style.opacity = "0.7";
 
     try {
       const formData = new FormData(contactForm);
@@ -786,17 +817,22 @@ if (contactForm) {
           </div>
         `;
       } else {
-        // Error
+        // Error - unlock the button
         alert(result.error || "Failed to send message. Please try again.");
-        submitButton.textContent = originalText;
+        submitButton.innerHTML = originalText;
         submitButton.disabled = false;
+        submitButton.style.cursor = "";
+        submitButton.style.opacity = "";
         // Reset reCAPTCHA
         grecaptcha.reset();
       }
     } catch (error) {
       alert("Network error. Please try again later.");
-      submitButton.textContent = originalText;
+      // Unlock the button
+      submitButton.innerHTML = originalText;
       submitButton.disabled = false;
+      submitButton.style.cursor = "";
+      submitButton.style.opacity = "";
       // Reset reCAPTCHA
       grecaptcha.reset();
     }
