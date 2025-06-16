@@ -29,3 +29,4 @@ web/.env
 # Composer dependencies
 web/vendor/
 
+# Trigger GitHub cache refresh
