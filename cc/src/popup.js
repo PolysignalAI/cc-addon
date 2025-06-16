@@ -491,7 +491,7 @@ class PopupManager {
       );
     }
 
-    // Sort currencies: favorites first (alphabetically), then non-favorites (alphabetically)
+    // Sort currencies: favorites first (alphabetically by code), then non-favorites (alphabetically by code)
     currencies.sort((a, b) => {
       const aIsFavorite = this.favoriteCurrencies.has(a.code);
       const bIsFavorite = this.favoriteCurrencies.has(b.code);
@@ -499,8 +499,8 @@ class PopupManager {
       if (aIsFavorite && !bIsFavorite) return -1;
       if (!aIsFavorite && bIsFavorite) return 1;
 
-      // Both are favorites or both are not favorites, sort alphabetically
-      return a.name.localeCompare(b.name);
+      // Both are favorites or both are not favorites, sort alphabetically by currency code
+      return a.code.localeCompare(b.code);
     });
 
     currencies.forEach((currency) => {
