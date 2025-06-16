@@ -48,8 +48,18 @@ export class PriceConverter {
    */
   async init() {
     try {
+      // Prevent multiple initializations
+      if (this.isActive) {
+        debug.log("Already initialized, skipping");
+        return;
+      }
+
       // Set up message handlers FIRST (before any async operations)
-      this.setupMessageHandlers();
+      // Only set up if not already set up
+      if (!this.messageHandlersSetup) {
+        this.setupMessageHandlers();
+        this.messageHandlersSetup = true;
+      }
 
       // Load settings
       const settings = await this.settings.load();

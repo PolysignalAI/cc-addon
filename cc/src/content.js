@@ -55,11 +55,17 @@ if (
     debug.log("Debug reference set: window.__priceConverter");
   }
 
-  // Handle cleanup
+  // Handle cleanup and reinitialization
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) {
       debug.log("Page becoming hidden, cleaning up");
       priceConverter.cleanup();
+    } else {
+      debug.log("Page becoming visible, reinitializing");
+      // Small delay to ensure page is fully visible
+      setTimeout(() => {
+        priceConverter.init();
+      }, 100);
     }
   });
 
