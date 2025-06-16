@@ -80,14 +80,18 @@ export class TooltipManager {
       (c) => c.currency !== baseCurrency
     );
 
+    // Sort other conversions alphabetically by currency code
+    otherConversions.sort((a, b) => a.currency.localeCompare(b.currency));
+
     // Add non-base conversions first
     for (const conversion of otherConversions) {
       const { currency, amount, symbol, formatted } = conversion;
 
+      // Add space between symbol and amount
       html += `
         <div class="currency-item">
           <span class="currency-code">${currency}</span>
-          <span class="currency-amount">${symbol}${formatted}</span>
+          <span class="currency-amount">${symbol} ${formatted}</span>
         </div>
       `;
     }
@@ -107,7 +111,7 @@ export class TooltipManager {
       html += `
         <div class="currency-item base-currency">
           <span class="currency-code">${currency}</span>
-          <span class="currency-amount">${symbol}${formatted}</span>
+          <span class="currency-amount">${symbol} ${formatted}</span>
         </div>
       `;
     }

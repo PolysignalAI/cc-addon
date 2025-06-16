@@ -360,9 +360,7 @@ export class StyleManager {
     root.style.setProperty("--cc-tooltip-theme", tooltipTheme);
     root.style.setProperty(
       "--cc-tooltip-bg",
-      tooltipTheme === "dark"
-        ? "rgba(0, 0, 0, 0.95)"
-        : "rgba(255, 255, 255, 0.95)"
+      tooltipTheme === "dark" ? "rgba(0, 0, 0, 0.95)" : "rgba(255, 255, 255, 1)" // No transparency for light mode
     );
     root.style.setProperty(
       "--cc-tooltip-color",

@@ -73,6 +73,9 @@
 .currency-item.base-currency {
   font-weight: 600 !important;
   color: var(--cc-tooltip-base-color, #4fc3f7) !important;
+  border-bottom: none !important;
+  padding-bottom: 0 !important;
+  margin-bottom: 0 !important;
 }
 
 .currency-code {
