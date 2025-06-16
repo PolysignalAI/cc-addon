@@ -98,12 +98,6 @@ document.addEventListener("DOMContentLoaded", async function () {
   const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
   let bodyContent = bodyMatch ? bodyMatch[1] : "";
 
-  // Debug: log original content
-  console.log(
-    "Script tags found:",
-    bodyContent.match(/<script[^>]*>.*?<\/script>/gs)
-  );
-
   // Remove the script tags since we'll add them differently
   bodyContent = bodyContent.replace(
     /<script[^>]*src=["']currency-detector\.js["'][^>]*><\/script>/gi,
