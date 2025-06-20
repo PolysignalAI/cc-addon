@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Currency Converter",
+  "name": "Polysignal Currency Converter",
   "version": "1.0.0",
-  "description": "Convert prices on any webpage to your preferred currencies",
+  "description": "Convert prices on any webpage to your preferred currencies instantly. See real-time conversions just by hovering over prices - no clicking required.",
 
   "permissions": ["storage", "activeTab", "alarms"],
 
@@ -21,7 +21,7 @@
 
   "action": {
     "default_popup": "src/popup.html",
-    "default_title": "Currency Converter",
+    "default_title": "Polysignal Currency Converter",
     "default_icon": {
       "16": "icons/icon-16.png",
       "32": "icons/icon-32.png",
